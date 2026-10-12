@@ -929,8 +929,12 @@
         <!-- PAGE SOURCE: identifies which page this submission came from. Change the value on other pages. -->
         <input type="hidden" name="page_source" value="home">
         <input type="hidden" name="_subject" value="New inquiry from the home page">
-        <!-- Spam trap: people never see or fill this; Formspree drops submissions that do -->
-        <input type="text" name="_gotcha" class="visually-hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <!-- Spam trap: bots fill this in, people never see it. display:none keeps browser autofill
+             away from it, which would otherwise get real submissions marked as spam. -->
+        <div style="display: none" aria-hidden="true">
+          <label for="hp-field">Leave this empty</label>
+          <input id="hp-field" type="text" name="_gotcha" tabindex="-1" autocomplete="off">
+        </div>
 
         <div class="field">
           <label for="name">Name</label>
