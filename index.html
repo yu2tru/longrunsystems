@@ -61,6 +61,7 @@
   a:hover { color: var(--accent-hover); }
 
   :focus { outline: none; }
+  [tabindex="-1"]:focus-visible { outline: none; }
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
@@ -252,9 +253,6 @@
   .center .actions,
   .center .meta-row,
   .center .tags { justify-content: center; }
-  .center .demo { margin-left: auto; margin-right: auto; }
-  .center .demo-label { justify-content: center; }
-  .center .projects { text-align: left; }
 
   /* Light band: same components, inverted tokens */
   .section--light {
@@ -306,20 +304,110 @@
   }
   .price span { color: var(--text-muted); font-weight: 400; }
 
-  /* ---------- Receptionist demo ---------- */
-  .demo {
-    margin-top: 56px;
-    padding: clamp(24px, 5vw, 40px);
+  /* ---------- Boxes (feature, step, plan, example) ---------- */
+  .boxes {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin: 56px 0 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+  }
+  @media (min-width: 680px) {
+    .boxes { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 960px) {
+    .boxes--3 { grid-template-columns: repeat(3, 1fr); }
+    .boxes--4 { grid-template-columns: repeat(4, 1fr); }
+  }
+  .box {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 28px 26px 30px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: var(--bg-raised);
-    max-width: 640px;
   }
-  .demo-label {
+  .box-num {
+    margin-bottom: 36px;
+    color: var(--text-faint);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .box h3 { font-size: 1.1875rem; }
+  .box p {
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+
+  /* Plans */
+  .plans {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-width: 880px;
+    margin: 48px auto 0;
+    text-align: left;
+  }
+  @media (min-width: 680px) {
+    .plans { grid-template-columns: repeat(2, 1fr); }
+  }
+  .box .plan-name {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .box .plan-price {
+    margin-top: 10px;
+    color: var(--text);
+    font-size: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+  }
+  .plan-price span {
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .box .plan-desc { margin-top: 10px; }
+  .plan-list {
+    display: grid;
+    gap: 10px;
+    margin: 24px 0 0;
+    padding: 20px 0 0;
+    border-top: 1px solid var(--line);
+    list-style: none;
+    color: var(--text);
+    font-size: 0.9375rem;
+  }
+  .plan-list li {
+    position: relative;
+    padding-left: 20px;
+  }
+  .plan-list li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 0.62em;
+    width: 8px;
+    height: 1.5px;
+    background: var(--accent);
+  }
+
+  /* Examples */
+  .example-tag {
     display: flex;
     align-items: center;
-    gap: 10px;
-    color: var(--text-muted);
+    gap: 8px;
+    margin-bottom: 28px;
+    color: var(--text-faint);
     font-size: 0.8125rem;
     font-weight: 500;
   }
@@ -327,90 +415,29 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #6fd3a1;
-    box-shadow: 0 0 0 3px rgba(111, 211, 161, 0.14);
+    background: #2fa36b;
+    box-shadow: 0 0 0 3px rgba(47, 163, 107, 0.16);
   }
-  .demo-number {
-    display: inline-block;
-    margin-top: 18px;
+  .box .example-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    margin-top: auto;
+    padding-top: 20px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+  .example-link:hover .arrow { transform: translate(2px, -2px); }
+  .box .example-number {
     color: var(--text);
-    font-size: clamp(2rem, 8.5vw, 3.25rem);
+    font-size: 1.375rem;
     font-weight: 600;
-    letter-spacing: -0.035em;
-    line-height: 1.1;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
-  .demo-number:hover { color: var(--accent-hover); }
-  .demo-note {
-    margin-top: 14px;
-    color: var(--text-muted);
-    font-size: 0.9375rem;
-  }
-
-  /* ---------- Project cards ---------- */
-  .projects {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-    margin: 56px 0 0;
-    padding: 0;
-    list-style: none;
-  }
-  @media (min-width: 680px) {
-    .projects { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (min-width: 960px) {
-    .projects { grid-template-columns: repeat(3, 1fr); }
-  }
-  .project-card {
-    display: block;
-    height: 100%;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--bg-raised);
-    color: inherit;
-    overflow: hidden;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
-  }
-  .project-card:hover {
-    color: inherit;
-    border-color: var(--line-strong);
-    background: var(--surface);
-  }
-  .project-media {
-    position: relative;
-    aspect-ratio: 16 / 10;
-    background:
-      linear-gradient(var(--line), var(--line)) bottom / 100% 1px no-repeat,
-      var(--media);
-    display: grid;
-    place-items: center;
-    color: var(--text-faint);
-    font-size: 0.8125rem;
-  }
-  .project-media img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .project-body {
-    padding: 20px 22px 24px;
-  }
-  .project-body h3 {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .project-body h3 .arrow { color: var(--text-faint); font-weight: 400; }
-  .project-card:hover h3 .arrow { color: var(--text); transform: translate(2px, -2px); }
-  .project-body p {
-    margin-top: 6px;
-    color: var(--text-muted);
-    font-size: 0.9375rem;
-  }
+  .example-number:hover { color: var(--accent); }
 
   /* ---------- Automation ---------- */
   .examples {
@@ -671,12 +698,13 @@
 
 <header class="site-header">
   <div class="container">
-    <a class="wordmark" href="#top">Long Run Systems</a>
+    <a class="wordmark" href="./">Long Run Systems</a>
     <nav aria-label="Primary">
       <ul class="site-nav" role="list">
         <li class="nav-section"><a class="header-link" href="#receptionist">Receptionist</a></li>
         <li class="nav-section"><a class="header-link" href="#websites">Websites</a></li>
         <li class="nav-section"><a class="header-link" href="#automation">Automation</a></li>
+        <li class="nav-section"><a class="header-link" href="#examples">Examples</a></li>
         <li class="nav-section"><a class="header-link" href="#faq">FAQ</a></li>
         <li><a class="header-link" href="#contact">Get in touch</a></li>
       </ul>
@@ -687,9 +715,9 @@
 <main id="main">
 
   <!-- 1. HERO -->
-  <section class="hero" id="top" aria-labelledby="hero-title">
+  <section class="hero" aria-labelledby="hero-title">
     <div class="container center">
-      <h1 id="hero-title" class="reveal">Nothing you have to think about.</h1>
+      <h1 id="hero-title" class="reveal">Never miss <span class="tone">another customer.</span></h1>
       <p class="lede reveal">Phone answering, websites, and automation for local businesses. Set up once, running from then on.</p>
       <div class="actions reveal">
         <a class="btn" href="#contact">Start a conversation</a>
@@ -705,16 +733,41 @@
       <h2 id="receptionist-title" class="reveal">Every call. <span class="tone">Every time.</span></h2>
       <p class="lede reveal">Answers at 2am, on Sundays, and while you're on another call. Most calls never reach you.</p>
 
-      <div class="demo reveal">
-        <p class="demo-label"><span class="status-dot" aria-hidden="true"></span>Live demo line</p>
-        <!-- DEMO NUMBER: update both the href and the visible text -->
-        <a class="demo-number" href="tel:+19419778411" aria-label="Call the demo line at 941 977 8411">(941) 977-8411</a>
-        <p class="demo-note">Call it now. It picks up on the first ring.</p>
-      </div>
+      <ul class="boxes boxes--4" role="list">
+        <li class="reveal">
+          <div class="box">
+            <p class="box-num">01</p>
+            <h3>It picks up.</h3>
+            <p>Every call, day or night, weekends included. No voicemail, no hold music, no caller left hanging.</p>
+          </div>
+        </li>
+        <li class="reveal">
+          <div class="box">
+            <p class="box-num">02</p>
+            <h3>It knows your business.</h3>
+            <p>Your services, prices, hours, and service area. It answers questions the way someone who works there would.</p>
+          </div>
+        </li>
+        <li class="reveal">
+          <div class="box">
+            <p class="box-num">03</p>
+            <h3>It books the job.</h3>
+            <p>Appointments go straight into your calendar, with overlap prevention so nothing gets double booked.</p>
+          </div>
+        </li>
+        <li class="reveal">
+          <div class="box">
+            <p class="box-num">04</p>
+            <h3>It follows up.</h3>
+            <p>After every call it updates your customer list, texts the caller a confirmation, and emails you the details.</p>
+          </div>
+        </li>
+      </ul>
 
       <div class="meta-row reveal">
         <p class="price">From $300<span>/month</span></p>
         <a class="more-link" href="#">See more about the receptionist <span class="arrow" aria-hidden="true">&rarr;</span></a>
+        <a class="more-link" href="#examples">Hear it live <span class="arrow" aria-hidden="true">&darr;</span></a>
       </div>
     </div>
   </section>
@@ -726,46 +779,57 @@
       <h2 id="websites-title" class="reveal">Look like <span class="tone">you mean it.</span></h2>
       <p class="lede reveal">Professional websites built from scratch for businesses that look smaller online than they really are. Handled fast, and tailored to your business.</p>
 
-      <!--
-        PROJECT CARDS
-        To fill in a card:
-          1. Set the href on the <a> to the live site.
-          2. Replace the placeholder text inside .project-media with
-             <img src="..." alt="..." width="1600" height="1000" loading="lazy">
-          3. Replace the project name and description.
-      -->
-      <ul class="projects" role="list">
+      <ol class="boxes boxes--3" role="list">
         <li class="reveal">
-          <a class="project-card" href="#">
-            <div class="project-media">Project image</div>
-            <div class="project-body">
-              <h3>Project name <span class="arrow" aria-hidden="true">&nearr;</span></h3>
-              <p>A short line on what the business does.</p>
-            </div>
-          </a>
+          <div class="box">
+            <p class="box-num">Step 1</p>
+            <h3>Reach out.</h3>
+            <p>Tell me about your business and what the site needs to do. One short call is usually enough.</p>
+          </div>
         </li>
         <li class="reveal">
-          <a class="project-card" href="#">
-            <div class="project-media">Project image</div>
-            <div class="project-body">
-              <h3>Project name <span class="arrow" aria-hidden="true">&nearr;</span></h3>
-              <p>A short line on what the business does.</p>
-            </div>
-          </a>
+          <div class="box">
+            <p class="box-num">Step 2</p>
+            <h3>I build it.</h3>
+            <p>From scratch, around your business. You see it early and tell me what to change.</p>
+          </div>
         </li>
         <li class="reveal">
-          <a class="project-card" href="#">
-            <div class="project-media">Project image</div>
-            <div class="project-body">
-              <h3>Project name <span class="arrow" aria-hidden="true">&nearr;</span></h3>
-              <p>A short line on what the business does.</p>
-            </div>
-          </a>
+          <div class="box">
+            <p class="box-num">Step 3</p>
+            <h3>It's live.</h3>
+            <p>Your site is up and working. If something is ever off, tell me and it gets fixed quickly.</p>
+          </div>
         </li>
-      </ul>
+      </ol>
+
+      <!-- PLANS: prices and included changes are easy to edit here -->
+      <div class="plans">
+        <div class="box reveal">
+          <h3 class="plan-name">Basic</h3>
+          <p class="plan-price">From $300</p>
+          <p class="plan-desc">A single page with everything a customer needs to find you and get in touch.</p>
+          <ul class="plan-list" role="list">
+            <li>One page, built from scratch</li>
+            <li>Works on every phone and screen</li>
+            <li>Contact form or click to call</li>
+            <li>3 changes after launch</li>
+          </ul>
+        </div>
+        <div class="box reveal">
+          <h3 class="plan-name">Professional</h3>
+          <p class="plan-price">From $500</p>
+          <p class="plan-desc">A full multi-page site with room to show your services, your work, and your story.</p>
+          <ul class="plan-list" role="list">
+            <li>Multiple pages, built from scratch</li>
+            <li>Service, gallery, and about pages</li>
+            <li>Contact forms and booking links</li>
+            <li>10 changes after launch</li>
+          </ul>
+        </div>
+      </div>
 
       <div class="meta-row reveal">
-        <p class="price">From $300</p>
         <a class="more-link" href="#">See more about websites <span class="arrow" aria-hidden="true">&rarr;</span></a>
       </div>
     </div>
@@ -797,7 +861,74 @@
     </div>
   </section>
 
-  <!-- 5. ABOUT -->
+  <!-- 5. EXAMPLES -->
+  <section class="section section--light" id="examples" aria-labelledby="examples-title">
+    <div class="container center">
+      <span class="eyebrow reveal">04 / Examples</span>
+      <h2 id="examples-title" class="reveal">See it <span class="tone">working.</span></h2>
+      <p class="lede reveal">Call the demo line and hear the receptionist for yourself, or look through sites I've built.</p>
+
+      <!--
+        EXAMPLE BOXES
+        The first box is the live receptionist demo. The other five are websites:
+        set the href to the live site, then replace the business name and description.
+      -->
+      <ul class="boxes boxes--3" role="list">
+        <li class="reveal">
+          <div class="box">
+            <p class="example-tag"><span class="status-dot" aria-hidden="true"></span>AI receptionist, live</p>
+            <!-- DEMO NAME: replace with the business name the demo line answers as -->
+            <h3>Demo business name</h3>
+            <p>A mobile detailing business. Ask about packages and prices, or book a detail, and it handles the call start to finish.</p>
+            <!-- DEMO NUMBER: update both the href and the visible text -->
+            <a class="example-link example-number" href="tel:+19419778411" aria-label="Call the demo line at 941 977 8411">(941) 977-8411</a>
+          </div>
+        </li>
+        <li class="reveal">
+          <div class="box">
+            <p class="example-tag">Website</p>
+            <h3>Business name</h3>
+            <p>A short line on what the business does and what the site handles.</p>
+            <a class="example-link" href="#" target="_blank" rel="noopener">Visit site <span class="arrow" aria-hidden="true">&nearr;</span></a>
+          </div>
+        </li>
+        <li class="reveal">
+          <div class="box">
+            <p class="example-tag">Website</p>
+            <h3>Business name</h3>
+            <p>A short line on what the business does and what the site handles.</p>
+            <a class="example-link" href="#" target="_blank" rel="noopener">Visit site <span class="arrow" aria-hidden="true">&nearr;</span></a>
+          </div>
+        </li>
+        <li class="reveal">
+          <div class="box">
+            <p class="example-tag">Website</p>
+            <h3>Business name</h3>
+            <p>A short line on what the business does and what the site handles.</p>
+            <a class="example-link" href="#" target="_blank" rel="noopener">Visit site <span class="arrow" aria-hidden="true">&nearr;</span></a>
+          </div>
+        </li>
+        <li class="reveal">
+          <div class="box">
+            <p class="example-tag">Website</p>
+            <h3>Business name</h3>
+            <p>A short line on what the business does and what the site handles.</p>
+            <a class="example-link" href="#" target="_blank" rel="noopener">Visit site <span class="arrow" aria-hidden="true">&nearr;</span></a>
+          </div>
+        </li>
+        <li class="reveal">
+          <div class="box">
+            <p class="example-tag">Website</p>
+            <h3>Business name</h3>
+            <p>A short line on what the business does and what the site handles.</p>
+            <a class="example-link" href="#" target="_blank" rel="noopener">Visit site <span class="arrow" aria-hidden="true">&nearr;</span></a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 6. ABOUT -->
   <section class="section section--band" id="about" aria-labelledby="about-title">
     <div class="container about-grid">
       <h2 id="about-title" class="reveal">About</h2>
@@ -807,7 +938,7 @@
     </div>
   </section>
 
-  <!-- 6. FAQ -->
+  <!-- 7. FAQ -->
   <section class="section" id="faq" aria-labelledby="faq-title">
     <div class="container faq-grid">
       <h2 id="faq-title" class="reveal">Questions</h2>
@@ -912,7 +1043,7 @@
     </div>
   </section>
 
-  <!-- 7. CONTACT -->
+  <!-- 8. CONTACT -->
   <section class="section section--band" id="contact" aria-labelledby="contact-title">
     <div class="container contact-grid">
       <div>
@@ -966,7 +1097,7 @@
 
 </main>
 
-<!-- 8. FOOTER -->
+<!-- 9. FOOTER -->
 <footer class="site-footer">
   <div class="container footer-row">
     <p class="footer-name">Long Run Systems</p>
@@ -981,6 +1112,29 @@
 <script>
   (function () {
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    // In-page links scroll without adding "#section" to the address bar.
+    // The browser has already jumped to any hash on arrival; tidy it off the URL.
+    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+    document.addEventListener("click", function (event) {
+      var link = event.target.closest("a");
+      if (!link || link.classList.contains("skip-link")) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      var href = link.getAttribute("href");
+      if (href === "#") { event.preventDefault(); return; } // placeholder links
+      if (href === "./") {
+        event.preventDefault();
+        window.scrollTo({ top: 0 });
+        return;
+      }
+      if (!href || href.charAt(0) !== "#") return;
+      var target = document.getElementById(href.slice(1));
+      if (!target) return;
+      event.preventDefault();
+      target.scrollIntoView();
+      target.setAttribute("tabindex", "-1");
+      target.focus({ preventScroll: true });
+    });
 
     // Accordion
     var triggers = document.querySelectorAll(".accordion-trigger");
