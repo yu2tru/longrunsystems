@@ -14,7 +14,7 @@
   :root {
     --bg: #0c0c0d;
     --bg-raised: #131315;
-    --bg-band: #111113;
+    --bg-band: #131316;
     --surface: #18181b;
     --line: rgba(255, 255, 255, 0.08);
     --line-strong: rgba(255, 255, 255, 0.14);
@@ -287,6 +287,8 @@
     border-top: 1px solid var(--line);
   }
   .section--band {
+    --bg-raised: #19191c;
+    --surface: #1e1e21;
     background: var(--bg-band);
   }
 
@@ -607,6 +609,8 @@
     justify-content: space-between;
     gap: 16px;
   }
+  .form-note.is-error { color: #ff9b9b; }
+  .form-note.is-sent { color: var(--text); }
   .form-note {
     color: var(--text-faint);
     font-size: 0.8125rem;
@@ -695,7 +699,7 @@
   </section>
 
   <!-- 2. AI RECEPTIONIST -->
-  <section class="section" id="receptionist" aria-labelledby="receptionist-title">
+  <section class="section section--band" id="receptionist" aria-labelledby="receptionist-title">
     <div class="container center">
       <span class="eyebrow reveal">01 / AI receptionist</span>
       <h2 id="receptionist-title" class="reveal">Every call. <span class="tone">Every time.</span></h2>
@@ -704,7 +708,7 @@
       <div class="demo reveal">
         <p class="demo-label"><span class="status-dot" aria-hidden="true"></span>Live demo line</p>
         <!-- DEMO NUMBER: update both the href and the visible text -->
-        <a class="demo-number" href="tel:+19415550123" aria-label="Call the demo line at 941 555 0123">(941) 555-0123</a>
+        <a class="demo-number" href="tel:+19419778411" aria-label="Call the demo line at 941 977 8411">(941) 977-8411</a>
         <p class="demo-note">Call it now. It picks up on the first ring.</p>
       </div>
 
@@ -794,7 +798,7 @@
   </section>
 
   <!-- 5. ABOUT -->
-  <section class="section" id="about" aria-labelledby="about-title">
+  <section class="section section--band" id="about" aria-labelledby="about-title">
     <div class="container about-grid">
       <h2 id="about-title" class="reveal">About</h2>
       <div class="about-text reveal">
@@ -915,8 +919,8 @@
         <h2 id="contact-title" class="reveal">Tell me <span class="tone">what you need.</span></h2>
         <p class="lede reveal">A few lines is enough. I reply within one business day.</p>
         <div class="contact-aside reveal">
-          <p>Or call <a href="tel:+19415550123">(941) 555-0123</a></p>
-          <p>Or email <a href="mailto:hello@example.com">hello@example.com</a></p>
+          <p>Or call <a href="tel:+19417827673">(941) 782-7673</a></p>
+          <p>Or email <a href="mailto:yusufjax1@gmail.com">yusufjax1@gmail.com</a></p>
         </div>
       </div>
 
@@ -924,6 +928,9 @@
       <form class="form reveal" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
         <!-- PAGE SOURCE: identifies which page this submission came from. Change the value on other pages. -->
         <input type="hidden" name="page_source" value="home">
+        <input type="hidden" name="_subject" value="New inquiry from the home page">
+        <!-- Spam trap: people never see or fill this; Formspree drops submissions that do -->
+        <input type="text" name="_gotcha" class="visually-hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
 
         <div class="field">
           <label for="name">Name</label>
@@ -947,7 +954,7 @@
         </div>
         <div class="form-footer field--full">
           <button class="btn" type="submit">Send message</button>
-          <p class="form-note">No mailing list. Just a reply.</p>
+          <p class="form-note" id="form-status" role="status" aria-live="polite">No mailing list. Just a reply.</p>
         </div>
       </form>
     </div>
@@ -960,8 +967,8 @@
   <div class="container footer-row">
     <p class="footer-name">Long Run Systems</p>
     <div class="footer-links">
-      <a href="tel:+19415550123">(941) 555-0123</a>
-      <a href="mailto:hello@example.com">hello@example.com</a>
+      <a href="tel:+19417827673">(941) 782-7673</a>
+      <a href="mailto:yusufjax1@gmail.com">yusufjax1@gmail.com</a>
     </div>
     <p class="copyright">&copy; <span id="year">2026</span> Long Run Systems</p>
   </div>
@@ -982,6 +989,33 @@
         panel.setAttribute("data-open", String(!open));
         if (open) panel.setAttribute("inert", "");
         else panel.removeAttribute("inert");
+      });
+    });
+
+    // Contact form: send in the background and confirm in place.
+    // Without JS, the form still posts to Formspree normally.
+    var form = document.querySelector(".form");
+    var status = document.getElementById("form-status");
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      var button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      status.className = "form-note";
+      status.textContent = "Sending...";
+      fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" }
+      }).then(function (response) {
+        if (!response.ok) throw new Error(response.status);
+        form.reset();
+        status.className = "form-note is-sent";
+        status.textContent = "Thanks. I'll be in touch within one business day.";
+      }).catch(function () {
+        status.className = "form-note is-error";
+        status.textContent = "That didn't go through. Try again, or call or email me directly.";
+      }).then(function () {
+        button.disabled = false;
       });
     });
 
