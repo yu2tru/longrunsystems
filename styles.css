@@ -383,6 +383,10 @@ p { margin: 0; }
 @media (min-width: 680px) {
   .plans { grid-template-columns: repeat(2, 1fr); }
 }
+.plans--3 { max-width: none; }
+@media (min-width: 960px) {
+  .plans--3 { grid-template-columns: repeat(3, 1fr); }
+}
 .plans-note {
   max-width: 34em;
   margin: 24px auto 0;
