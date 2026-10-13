@@ -457,13 +457,13 @@ p { margin: 0; }
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 28px 26px 30px;
+  padding: 22px 24px 22px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--bg-raised);
 }
 .box-num {
-  margin-bottom: 36px;
+  margin-bottom: 12px;
   color: var(--text-faint);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -545,7 +545,6 @@ p { margin: 0; }
 }
 
 /* Examples */
-#examples .box { padding: 22px 24px 18px; }
 #examples .example-tag { margin-bottom: 14px; }
 #examples .box .example-link { min-height: 40px; padding-top: 8px; }
 .example-tag {
