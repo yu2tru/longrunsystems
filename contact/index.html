@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact | Long Run Systems</title>
+<meta name="description" content="Get in touch about an AI receptionist, a website, or an automation for your business.">
+<meta name="theme-color" content="#0c0c0d">
+<script>document.documentElement.classList.add("js");</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="wordmark" href="../">Long Run Systems</a>
+    <nav aria-label="Primary">
+      <ul class="site-nav" role="list">
+        <li class="nav-section"><a class="header-link" href="../receptionist/">Receptionist</a></li>
+        <li class="nav-section"><a class="header-link" href="../websites/">Websites</a></li>
+        <li class="nav-section"><a class="header-link" href="../automation/">Automation</a></li>
+        <li class="nav-section"><a class="header-link" href="../#examples">Examples</a></li>
+        <li class="nav-section"><a class="header-link" href="../#faq">FAQ</a></li>
+        <li><a class="header-link" href="../contact/" aria-current="page">Get in touch</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="section section--page" id="contact" aria-labelledby="contact-title">
+    <div class="container contact-grid">
+      <div>
+        <span class="eyebrow reveal">Get in touch</span>
+        <h1 id="contact-title" class="reveal">Tell me <span class="tone">what you need.</span></h1>
+        <p class="lede reveal">A few lines is enough. I reply within one business day.</p>
+        <div class="contact-aside reveal">
+          <p>Or call <a href="tel:+19417827673">(941) 782-7673</a></p>
+          <p>Or email <a href="mailto:yusufjax1@gmail.com">yusufjax1@gmail.com</a></p>
+        </div>
+      </div>
+
+      <!-- FORMSPREE: form endpoint. To use a different form, replace the ID at the end of the action URL. -->
+      <form class="form reveal" action="https://formspree.io/f/meaelvea" method="POST">
+        <!-- PAGE SOURCE: identifies which page this submission came from. -->
+        <input type="hidden" name="page_source" value="contact">
+        <input type="hidden" name="_subject" value="New inquiry from the contact page">
+        <!-- Spam trap: bots fill this in, people never see it. display:none keeps browser autofill
+             away from it, which would otherwise get real submissions marked as spam. -->
+        <div style="display: none" aria-hidden="true">
+          <label for="hp-field">Leave this empty</label>
+          <input id="hp-field" type="text" name="_gotcha" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="business">Business name</label>
+          <input id="business" name="business" type="text" autocomplete="organization" required>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required>
+        </div>
+        <div class="field">
+          <label for="phone">Phone <span class="optional">(optional)</span></label>
+          <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel">
+        </div>
+        <div class="field field--full">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="5" placeholder="What does your business do, and what would you like handled?" required></textarea>
+        </div>
+        <div class="form-footer field--full">
+          <button class="btn" type="submit">Send message</button>
+          <p class="form-note" id="form-status" role="status" aria-live="polite">No mailing list. Just a reply.</p>
+        </div>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <p class="footer-name">Long Run Systems</p>
+    <div class="footer-links">
+      <a href="tel:+19417827673">(941) 782-7673</a>
+      <a href="mailto:yusufjax1@gmail.com">yusufjax1@gmail.com</a>
+    </div>
+    <p class="copyright">&copy; <span id="year">2026</span> Long Run Systems</p>
+  </div>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>

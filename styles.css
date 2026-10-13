@@ -608,6 +608,14 @@ html:not(.js) .accordion-panel { grid-template-rows: 1fr; }
 @media (min-width: 960px) {
   .contact-grid { grid-template-columns: 1fr 1.25fr; gap: 64px; }
 }
+.section--page {
+  border-top: 0;
+  padding-top: clamp(64px, 11vw, 120px);
+}
+.section--page h1 {
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  letter-spacing: -0.045em;
+}
 .contact-aside {
   margin-top: 32px;
   color: var(--text-muted);
