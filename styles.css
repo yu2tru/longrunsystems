@@ -545,6 +545,9 @@ p { margin: 0; }
 }
 
 /* Examples */
+#examples .box { padding: 22px 24px 18px; }
+#examples .example-tag { margin-bottom: 14px; }
+#examples .box .example-link { min-height: 40px; padding-top: 8px; }
 .example-tag {
   display: flex;
   align-items: center;
