@@ -81,6 +81,8 @@
       setOpen(toggle.getAttribute("aria-expanded") !== "true");
     });
     backdrop.addEventListener("click", function () { setOpen(false); });
+    // iOS can still scroll the page by dragging on the backdrop; stop that.
+    backdrop.addEventListener("touchmove", function (event) { event.preventDefault(); }, { passive: false });
     drawer.addEventListener("click", function (event) {
       if (event.target.closest("a")) setOpen(false);
     });
