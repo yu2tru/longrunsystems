@@ -29,6 +29,69 @@
     target.focus({ preventScroll: true });
   });
 
+  // Mobile menu: a toggle that turns into an X, and a drawer from the right
+  // listing the same links as the desktop nav.
+  var header = document.querySelector(".site-header");
+  var navLinks = document.querySelectorAll(".site-nav a");
+  if (header && navLinks.length) {
+    var toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "menu-toggle";
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-controls", "mobile-menu");
+    toggle.setAttribute("aria-label", "Open menu");
+    toggle.innerHTML = '<span class="bar"></span><span class="bar"></span><span class="bar"></span>';
+    header.querySelector(".container").appendChild(toggle);
+
+    var drawer = document.createElement("nav");
+    drawer.id = "mobile-menu";
+    drawer.className = "drawer";
+    drawer.setAttribute("aria-label", "Menu");
+    var list = document.createElement("ul");
+    list.setAttribute("role", "list");
+    var last = navLinks[navLinks.length - 1];
+    navLinks.forEach(function (link) {
+      if (link === last) return;
+      var item = document.createElement("li");
+      var copy = link.cloneNode(true);
+      copy.className = "drawer-link";
+      item.appendChild(copy);
+      list.appendChild(item);
+    });
+    drawer.appendChild(list);
+    var cta = last.cloneNode(true); // "Get in touch" becomes a full-width button
+    cta.className = "btn";
+    drawer.appendChild(cta);
+
+    var backdrop = document.createElement("div");
+    backdrop.className = "drawer-backdrop";
+    header.after(backdrop, drawer);
+    drawer.inert = true;
+
+    var setOpen = function (open) {
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      drawer.classList.toggle("is-open", open);
+      backdrop.classList.toggle("is-open", open);
+      document.documentElement.classList.toggle("menu-open", open);
+      drawer.inert = !open;
+      if (!open && drawer.contains(document.activeElement)) toggle.focus();
+    };
+    toggle.addEventListener("click", function () {
+      setOpen(toggle.getAttribute("aria-expanded") !== "true");
+    });
+    backdrop.addEventListener("click", function () { setOpen(false); });
+    drawer.addEventListener("click", function (event) {
+      if (event.target.closest("a")) setOpen(false);
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && drawer.classList.contains("is-open")) setOpen(false);
+    });
+    window.matchMedia("(min-width: 760px)").addEventListener("change", function (mq) {
+      if (mq.matches) setOpen(false);
+    });
+  }
+
   // Accordion
   var triggers = document.querySelectorAll(".accordion-trigger");
   triggers.forEach(function (trigger) {
