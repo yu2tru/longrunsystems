@@ -89,7 +89,7 @@
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && drawer.classList.contains("is-open")) setOpen(false);
     });
-    window.matchMedia("(min-width: 760px)").addEventListener("change", function (mq) {
+    window.matchMedia("(min-width: 880px)").addEventListener("change", function (mq) {
       if (mq.matches) setOpen(false);
     });
   }
