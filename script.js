@@ -135,6 +135,89 @@
     });
   });
 
+  // Horizontal panel tracks (home page: receptionist and Lead Scraper).
+  // Wide screens with a mouse: the section pins and vertical scroll moves the
+  // track sideways, over a finite distance equal to the track's overflow, then
+  // normal scrolling resumes. Touch, narrow screens, or a viewport too short to
+  // hold the pinned section: a native swipe carousel. Reduced motion: CSS lays
+  // the panels out as a plain grid and nothing here pins or moves them.
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var pinQuery = window.matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine)");
+  var tracks = [];
+  document.querySelectorAll("[data-hscroll]").forEach(function (section) {
+    var t = {
+      section: section,
+      inner: section.querySelector(".hscroll-sticky > .container"),
+      track: section.querySelector(".hscroll-track"),
+      bar: section.querySelector(".hscroll-progress"),
+      pinned: false,
+      travel: 0,
+      offset: 0
+    };
+    t.track.addEventListener("scroll", function () { if (!t.pinned) progress(t); }, { passive: true });
+    tracks.push(t);
+  });
+
+  function progress(t) {
+    var p;
+    if (t.pinned) {
+      var into = t.offset - t.section.getBoundingClientRect().top;
+      p = Math.min(1, Math.max(0, into / t.travel));
+      t.track.style.setProperty("--x", (p * t.travel).toFixed(1));
+    } else {
+      var max = t.track.scrollWidth - t.track.clientWidth;
+      p = max > 0 ? t.track.scrollLeft / max : 0;
+    }
+    if (t.bar) t.bar.style.setProperty("--p", p.toFixed(4));
+  }
+
+  function layoutTracks() {
+    var headerH = header ? header.offsetHeight : 0;
+    var room = window.innerHeight - headerH;
+    tracks.forEach(function (t) {
+      t.section.classList.remove("is-pinned");
+      t.section.style.height = "";
+      t.track.style.removeProperty("--x");
+      t.pinned = false;
+      if (!reduceMotion.matches && pinQuery.matches) {
+        t.section.classList.add("is-pinned");
+        t.travel = Math.max(0, t.track.scrollWidth - t.track.clientWidth);
+        // Pin only if the whole section fits on screen and there is somewhere to go.
+        if (t.travel > 8 && t.inner.offsetHeight <= room - 24) {
+          t.pinned = true;
+          t.offset = headerH;
+          t.section.style.height = (room + t.travel) + "px";
+        } else {
+          t.section.classList.remove("is-pinned");
+        }
+      }
+      // A focusable list only when it really scrolls sideways (arrow keys move it).
+      var scrolls = !t.pinned && !reduceMotion.matches;
+      if (scrolls) t.track.setAttribute("tabindex", "0");
+      else t.track.removeAttribute("tabindex");
+      progress(t);
+    });
+  }
+
+  if (tracks.length) {
+    var queued = false;
+    var onScroll = function () {
+      if (queued) return;
+      queued = true;
+      window.requestAnimationFrame(function () {
+        queued = false;
+        tracks.forEach(function (t) { if (t.pinned) progress(t); });
+      });
+    };
+    var relayout = function () { window.requestAnimationFrame(layoutTracks); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", relayout);
+    window.addEventListener("load", relayout);
+    reduceMotion.addEventListener("change", relayout);
+    pinQuery.addEventListener("change", relayout);
+    layoutTracks();
+  }
+
   // Scroll reveal
   var items = document.querySelectorAll(".reveal");
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
