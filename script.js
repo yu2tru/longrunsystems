@@ -147,6 +147,7 @@
   document.querySelectorAll("[data-hscroll]").forEach(function (section) {
     var t = {
       section: section,
+      pin: section.querySelector(".hscroll-pin") || section,
       inner: section.querySelector(".hscroll-sticky > .container"),
       track: section.querySelector(".hscroll-track"),
       bar: section.querySelector(".hscroll-progress"),
@@ -161,7 +162,7 @@
   function progress(t) {
     var p;
     if (t.pinned) {
-      var into = t.offset - t.section.getBoundingClientRect().top;
+      var into = t.offset - t.pin.getBoundingClientRect().top;
       p = Math.min(1, Math.max(0, into / t.travel));
       t.track.style.setProperty("--x", (p * t.travel).toFixed(1));
     } else {
@@ -176,7 +177,7 @@
     var room = window.innerHeight - headerH;
     tracks.forEach(function (t) {
       t.section.classList.remove("is-pinned");
-      t.section.style.height = "";
+      t.pin.style.height = "";
       t.track.style.removeProperty("--x");
       t.pinned = false;
       if (!reduceMotion.matches && pinQuery.matches) {
@@ -186,7 +187,7 @@
         if (t.travel > 8 && t.inner.offsetHeight <= room - 24) {
           t.pinned = true;
           t.offset = headerH;
-          t.section.style.height = (room + t.travel) + "px";
+          t.pin.style.height = (room + t.travel) + "px";
         } else {
           t.section.classList.remove("is-pinned");
         }
@@ -216,6 +217,152 @@
     reduceMotion.addEventListener("change", relayout);
     pinQuery.addEventListener("change", relayout);
     layoutTracks();
+  }
+
+  // Headline gradient: one line runs left to right, two or more lines fall
+  // off from the top left. Re-checked whenever the layout can change.
+  var heads = document.querySelectorAll("main h1, main h2");
+  var markHeads = function () {
+    heads.forEach(function (h) {
+      h.classList.add("grad");
+      var lh = parseFloat(window.getComputedStyle(h).lineHeight);
+      var lines = lh ? Math.round(h.getBoundingClientRect().height / lh) : 1;
+      h.classList.toggle("grad--multi", lines > 1);
+    });
+  };
+  markHeads();
+  var headsQueued = false;
+  window.addEventListener("resize", function () {
+    if (headsQueued) return;
+    headsQueued = true;
+    window.requestAnimationFrame(function () { headsQueued = false; markHeads(); });
+  });
+  window.addEventListener("load", markHeads);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(markHeads);
+
+  // Sequence marker: a blue dot hops along the process line, squashing on
+  // take-off and landing, turns into a green check on the last step with a
+  // small ring, then exits past the edge and comes back around. Runs only
+  // while the panel is on screen. Reduced motion: CSS hides it and shows a
+  // still check instead.
+  var sequences = document.querySelectorAll(".sequence");
+  if (sequences.length && !reduceMotion.matches && Element.prototype.animate) {
+    sequences.forEach(runSequence);
+  }
+
+  function runSequence(seq) {
+    var steps = seq.querySelectorAll(".sequence-step");
+    if (steps.length < 2) return;
+    var ball = document.createElement("span");
+    ball.className = "seq-ball";
+    ball.setAttribute("aria-hidden", "true");
+    ball.innerHTML = '<span class="seq-ball-ring"></span><span class="seq-ball-dot"></span>' +
+      '<svg class="seq-ball-check" viewBox="0 0 23 23" focusable="false"><path d="M7.4 11.9 L10.2 14.6 L15.6 8.9"/></svg>';
+    seq.appendChild(ball);
+    var dot = ball.querySelector(".seq-ball-dot");
+    var ring = ball.querySelector(".seq-ball-ring");
+    var tick = ball.querySelector(".seq-ball-check path");
+    var styles = window.getComputedStyle(seq);
+    var blue = styles.getPropertyValue("--accent").trim();
+    var green = styles.getPropertyValue("--ok").trim();
+
+    var visible = false, waiting = [];
+    new IntersectionObserver(function (entries) {
+      visible = entries[0].isIntersecting;
+      if (visible) { waiting.forEach(function (go) { go(); }); waiting = []; }
+    }).observe(seq);
+    var whenVisible = function () {
+      return visible ? Promise.resolve() : new Promise(function (go) { waiting.push(go); });
+    };
+    var wait = function (ms) { return new Promise(function (go) { setTimeout(go, ms); }); };
+    // Play keyframes, then keep the end state as plain style so nothing piles up.
+    var play = function (el, frames, opts) {
+      var a = el.animate(frames, Object.assign({ fill: "forwards" }, opts));
+      return a.finished.then(function () {
+        var end = frames[frames.length - 1];
+        Object.keys(end).forEach(function (k) { if (k !== "offset" && k !== "easing") el.style[k] = end[k]; });
+        a.cancel();
+      });
+    };
+    var at = function (p) { return "translate(" + p.x.toFixed(1) + "px," + p.y.toFixed(1) + "px)"; };
+    // Center of step i's static dot, measured fresh each time (layout can change).
+    var center = function (i) {
+      var st = steps[i], cs = window.getComputedStyle(st, "::before");
+      var sr = st.getBoundingClientRect(), qr = seq.getBoundingClientRect();
+      return {
+        x: sr.left - qr.left + parseFloat(cs.left) + parseFloat(cs.width) / 2,
+        y: sr.top - qr.top + parseFloat(cs.top) + parseFloat(cs.height) / 2
+      };
+    };
+    var squashUp = [{ transform: "scale(1,1)" }, { transform: "scale(1.24,0.76)", offset: 0.6 }, { transform: "scale(0.9,1.12)" }];
+    var squashDown = [{ transform: "scale(0.94,1.07)" }, { transform: "scale(1.26,0.74)", offset: 0.35 }, { transform: "scale(0.97,1.03)", offset: 0.7 }, { transform: "scale(1,1)" }];
+    // One hop: anticipation squash, an arc sampled point by point (bulging
+    // up when moving sideways, outward when moving down), and a landing squash.
+    var hop = function (a, b, lift) {
+      var dx = b.x - a.x, dy = b.y - a.y, len = Math.sqrt(dx * dx + dy * dy) || 1;
+      var nx = dy / len, ny = -dx / len, h = lift || Math.min(30, 10 + len * 0.1);
+      var path = [];
+      for (var i = 0; i <= 24; i++) {
+        var t = i / 24, up = 4 * t * (1 - t) * h;
+        path.push({ transform: at({ x: a.x + dx * t + nx * up, y: a.y + dy * t + ny * up }), offset: t });
+      }
+      return play(dot, squashUp, { duration: 170, easing: "ease-in-out" }).then(function () {
+        return Promise.all([
+          play(ball, path, { duration: Math.min(720, 380 + len * 0.6), easing: "cubic-bezier(0.45, 0.05, 0.55, 0.95)" }),
+          play(dot, [{ transform: "scale(0.9,1.12)" }, { transform: "scale(1,1)", offset: 0.5 }, { transform: "scale(0.94,1.07)" }], { duration: Math.min(720, 380 + len * 0.6) })
+        ]);
+      }).then(function () {
+        return play(dot, squashDown, { duration: 280, easing: "ease-out" });
+      });
+    };
+
+    var loop = function () {
+      var n = steps.length, i = 0;
+      var next = function () {
+        return whenVisible().then(function () { return wait(1000); }).then(function () {
+          if (i < n - 1) { i++; return hop(center(i - 1), center(i)).then(i < n - 1 ? next : finish); }
+          return finish();
+        });
+      };
+      var finish = function () {
+        // Blue to green, then into a check, with one quiet ring.
+        return play(dot, [{ backgroundColor: blue }, { backgroundColor: green }], { duration: 240, easing: "ease-out" }).then(function () {
+          return Promise.all([
+            play(dot, [{ transform: "scale(1,1)" }, { transform: "scale(1.45,1.45)" }], { duration: 300, easing: "cubic-bezier(0.3, 1.3, 0.5, 1)" }),
+            play(tick, [{ strokeDashoffset: "20" }, { strokeDashoffset: "0" }], { duration: 380, delay: 120, easing: "cubic-bezier(0.3, 0.7, 0.3, 1)" }),
+            play(ring, [{ transform: "scale(1)", opacity: 0.7 }, { transform: "scale(3.4)", opacity: 0 }], { duration: 820, delay: 80, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" })
+          ]);
+        }).then(function () { return wait(2000); }).then(function () {
+          // Back to a blue dot.
+          return Promise.all([
+            play(tick, [{ strokeDashoffset: "0" }, { strokeDashoffset: "20" }], { duration: 260, easing: "ease-in" }),
+            play(dot, [{ transform: "scale(1.45,1.45)", backgroundColor: green }, { transform: "scale(1,1)", backgroundColor: blue }], { duration: 380, delay: 120, easing: "ease-in-out" })
+          ]);
+        }).then(function () { return wait(400); }).then(exitAndReturn);
+      };
+      // Hop to the far edge (right, or bottom when the line runs down), squash
+      // against it, slip out, then come back in from the opposite edge.
+      var exitAndReturn = function () {
+        var first = center(0), second = center(1), last = center(n - 1);
+        var across = Math.abs(second.x - first.x) >= Math.abs(second.y - first.y);
+        var w = seq.clientWidth, hgt = seq.clientHeight;
+        var edge = across ? { x: w - 7, y: last.y } : { x: last.x, y: hgt - 7 };
+        var out = across ? { x: w + 18, y: last.y } : { x: last.x, y: hgt + 18 };
+        var start = across ? { x: -18, y: first.y } : { x: first.x, y: -18 };
+        var enter = across ? { x: 8, y: first.y } : { x: first.x, y: 8 };
+        return hop(last, edge, 16).then(function () {
+          return play(ball, [{ transform: at(edge), opacity: 1 }, { transform: at(out), opacity: 0 }], { duration: 320, easing: "ease-in" });
+        }).then(function () { return wait(500); }).then(function () {
+          return play(ball, [{ transform: at(start), opacity: 0 }, { transform: at(enter), opacity: 1 }], { duration: 300, easing: "ease-out" });
+        }).then(function () {
+          return hop(enter, center(0), 14);
+        }).then(loop);
+      };
+      return next();
+    };
+
+    ball.style.transform = at(center(0));
+    loop();
   }
 
   // Scroll reveal

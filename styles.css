@@ -21,6 +21,14 @@
     0 1px 2px rgba(0, 0, 0, 0.4),
     0 22px 44px -18px rgba(0, 0, 0, 0.55),
     0 48px 96px -40px rgba(0, 0, 0, 0.5);
+  --panel-shadow-lift:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 30px 56px -18px rgba(0, 0, 0, 0.65),
+    0 64px 112px -40px rgba(0, 0, 0, 0.55);
+  /* Headlines sit on the page with the same soft depth as the panels */
+  --headline-shadow: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.38));
+  --ok: #2fa36b;
   --radius: 10px;
   --radius-sm: 8px;
   --max: 1120px;
@@ -241,9 +249,8 @@ html { scroll-padding-top: 72px; }
 
 /* Service pages: the page-level hero is a little shorter than the home hero */
 .hero--page {
-  padding: clamp(80px, 14vw, 144px) 0 clamp(72px, 12vw, 128px);
+  padding: clamp(48px, 8vw, 104px) 0 clamp(64px, 10vw, 112px);
 }
-.hero--page .eyebrow { margin-bottom: 24px; }
 
 .section-head { max-width: 40em; margin: 0 auto; }
 .section-head h2 { font-size: clamp(2rem, 6vw, 3.5rem); }
@@ -294,9 +301,33 @@ h3 {
 }
 p { margin: 0; }
 
-/* Two-tone headlines: the part after the first phrase recedes */
+/* Two-tone fallback: before script.js runs, or without background-clip */
 .tone { color: var(--text-tone); }
 .tone-2 { color: color-mix(in srgb, var(--text-tone) 60%, var(--bg)); }
+
+/* Soft drop shadow so headlines sit on the page like the panels. A filter
+   (not text-shadow) so it also works on gradient-clipped text. */
+h1, h2 { filter: var(--headline-shadow); }
+
+/* Headline gradient, bright to muted, across the whole headline.
+   script.js adds .grad, then .grad--multi when it wraps to 2+ lines:
+   one line runs left to right, several lines fall off from the top left.
+   Without background-clip support the solid color and .tone spans remain. */
+.grad { width: fit-content; max-width: 100%; }
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .grad {
+    background-image: linear-gradient(to right, var(--text) 0%, var(--text) 30%, var(--text-tone) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+  .grad.grad--multi {
+    background-image: radial-gradient(farthest-corner at 0% 0%, var(--text) 30%, var(--text-tone) 100%);
+  }
+  .grad .tone,
+  .grad .tone-2 { color: transparent; -webkit-text-fill-color: transparent; }
+}
 
 .eyebrow {
   display: block;
@@ -340,6 +371,9 @@ p { margin: 0; }
   font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: -0.005em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.18);
   cursor: pointer;
   transition: background-color 0.15s ease, transform 0.15s ease;
 }
@@ -412,6 +446,11 @@ p { margin: 0; }
     0 1px 2px rgba(0, 0, 0, 0.05),
     0 18px 40px -20px rgba(0, 0, 0, 0.14),
     0 40px 80px -48px rgba(0, 0, 0, 0.12);
+  --panel-shadow-lift:
+    0 2px 4px rgba(0, 0, 0, 0.06),
+    0 26px 48px -20px rgba(0, 0, 0, 0.18),
+    0 56px 96px -48px rgba(0, 0, 0, 0.16);
+  --headline-shadow: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.12));
   background: var(--bg);
   color: var(--text);
   border-top-color: transparent;
@@ -547,6 +586,15 @@ p { margin: 0; }
   border-radius: var(--radius);
   background: var(--panel);
   box-shadow: var(--panel-shadow);
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+/* Lift on hover: 4px, well inside the 18px gaps, so a panel never touches
+   its neighbor. Touch screens get it only while pressed. */
+@media (hover: hover) and (pointer: fine) {
+  .box:hover { transform: translateY(-4px); box-shadow: var(--panel-shadow-lift); }
+}
+@media (hover: none) {
+  .box:active { transform: translateY(-4px); box-shadow: var(--panel-shadow-lift); }
 }
 .box h3 { font-size: 1.1875rem; }
 .box p {
@@ -556,9 +604,9 @@ p { margin: 0; }
   line-height: 1.6;
 }
 
-/* Groups vary panel sizes by count instead of one rigid row of equals.
-   Three: a wider lead panel, the others stepped down. Four: two wide, two
-   narrow. Six: a staggered mosaic. */
+/* Groups vary panel sizes by count on a clean, aligned grid (no offsets;
+   only Examples is deliberately uneven). Three: a wider lead panel. Four:
+   two wide, two narrow. Six: wide and narrow panels alternating by row. */
 @media (min-width: 680px) {
   .boxes { grid-template-columns: repeat(2, 1fr); }
   .boxes--n3 > li:first-child,
@@ -568,10 +616,8 @@ p { margin: 0; }
   .boxes--n6 > li:nth-child(4) { grid-column: 1 / -1; }
 }
 @media (min-width: 960px) {
-  .boxes--n3 { grid-template-columns: 1.45fr 1fr 1fr; align-items: start; }
+  .boxes--n3 { grid-template-columns: 1.45fr 1fr 1fr; }
   .boxes--n3 > li:first-child { grid-column: auto; }
-  .boxes--n3 > li:nth-child(2) { margin-top: 44px; }
-  .boxes--n3 > li:nth-child(3) { margin-top: 18px; }
   .boxes--n4,
   .boxes--n6 { grid-template-columns: repeat(3, 1fr); }
   .boxes--n4 > li:first-child,
@@ -591,8 +637,9 @@ p { margin: 0; }
 }
 
 /* ---------- Sequence: three moments on one wide panel ----------
-   A hairline connects the steps: down the left on phones, across the top
-   from 760px. The last node is lit. */
+   Each dot sits over its own column (centered on desktop, on a rail at the
+   left on phones). The line is drawn per step, from that step's dot center to
+   the next one's, so it starts and ends exactly on the first and last dots. */
 .sequence {
   position: relative;
   display: grid;
@@ -605,28 +652,28 @@ p { margin: 0; }
   background: var(--panel);
   box-shadow: var(--panel-shadow);
 }
-.sequence::before {
-  content: "";
-  position: absolute;
-  left: 30px;
-  top: 44px;
-  bottom: 44px;
-  width: 1px;
-  background: var(--line-strong);
-}
 .sequence-step { position: relative; }
 .sequence-step::before {
   content: "";
   position: absolute;
+  z-index: 1;
   left: -30px;
-  top: 0.5em;
+  top: 6px;
   width: 9px;
   height: 9px;
   border-radius: 50%;
   background: var(--panel);
   box-shadow: inset 0 0 0 1.5px var(--text-faint);
 }
-.sequence-step:last-child::before { background: var(--accent); box-shadow: none; }
+.sequence-step:not(:last-of-type)::after {
+  content: "";
+  position: absolute;
+  left: -26px;
+  top: 10px;
+  width: 1px;
+  height: calc(100% + 30px); /* to the next dot's center, across the gap */
+  background: var(--line-strong);
+}
 .sequence-step h3 { font-size: 1.1875rem; }
 .sequence-step p {
   max-width: 24em;
@@ -641,16 +688,89 @@ p { margin: 0; }
     gap: 44px;
     padding: 44px 44px 46px;
   }
-  .sequence::before {
-    left: 44px;
-    right: 44px;
-    top: 48px;
-    bottom: auto;
-    width: auto;
+  .sequence-step {
+    padding-top: 34px;
+    text-align: center;
+  }
+  .sequence-step p { margin-left: auto; margin-right: auto; }
+  .sequence-step::before { left: calc(50% - 4.5px); top: 0; }
+  .sequence-step:not(:last-of-type)::after {
+    left: 50%;
+    top: 4px;
+    width: calc(100% + 44px);
     height: 1px;
   }
-  .sequence-step { padding-top: 34px; }
-  .sequence-step::before { left: 0; top: 0; }
+}
+
+/* The moving marker (built by script.js): hops dot to dot, turns into a green
+   check on the last one, then exits and comes back around. */
+.seq-ball {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  top: 0;
+  width: 13px;
+  height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  pointer-events: none;
+}
+.seq-ball-dot {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  transform-origin: 50% 100%; /* squash against the ground */
+}
+.seq-ball-check {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 23px;
+  height: 23px;
+  overflow: visible;
+}
+.seq-ball-check path {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+}
+.seq-ball-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--ok);
+  opacity: 0;
+}
+/* Reduced motion: no marker. The last dot is a still green check, matching
+   the marker's final state (a green disk with a white tick). */
+@media (prefers-reduced-motion: reduce) {
+  .seq-ball { display: none; }
+  .sequence-step:last-of-type::before {
+    width: 17px;
+    height: 17px;
+    margin: -4px 0 0 -4px;
+    background: var(--ok);
+    box-shadow: none;
+  }
+  .sequence-step:last-of-type::after {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    left: -26px;
+    top: 7px;
+    width: 4px;
+    height: 7px;
+    border: solid #ffffff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) and (min-width: 760px) {
+  .sequence-step:last-of-type::after { left: calc(50% - 2px); top: 0; }
 }
 
 /* ---------- Horizontal panel tracks (home: receptionist, Lead Scraper) ----------
@@ -660,7 +780,7 @@ p { margin: 0; }
    Reduced motion: a plain grid, no pinning and no transform. */
 .hscroll-track {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 18px;
   margin: 48px calc(-1 * var(--gutter)) 0;
   padding: 10px var(--gutter) 44px;
@@ -677,11 +797,7 @@ p { margin: 0; }
   flex: 0 0 min(82%, 380px);
   scroll-snap-align: start;
 }
-.hscroll-track > li:nth-child(even) {
-  flex-basis: min(72%, 320px);
-  margin-top: 26px;
-}
-.hscroll-track .box { height: auto; }
+.hscroll-track > li:nth-child(even) { flex-basis: min(72%, 320px); }
 .hscroll-progress {
   position: relative;
   max-width: 140px;
@@ -698,6 +814,8 @@ p { margin: 0; }
   transform-origin: left center;
 }
 .hscroll.is-pinned { padding: 0; }
+.hscroll.is-pinned .hscroll-after { padding-bottom: clamp(88px, 13vw, 152px); }
+.hscroll-after { padding-top: 16px; }
 .hscroll.is-pinned .hscroll-sticky {
   position: sticky;
   top: 57px; /* header height */
@@ -733,7 +851,6 @@ p { margin: 0; }
     overflow: visible;
     scroll-snap-type: none;
   }
-  .hscroll-track > li:nth-child(even) { margin-top: 0; }
   .hscroll-progress { display: none; }
 }
 @media (prefers-reduced-motion: reduce) and (min-width: 680px) {
@@ -756,6 +873,16 @@ p { margin: 0; }
 @media (min-width: 960px) {
   .plans--3 { grid-template-columns: repeat(3, 1fr); }
 }
+.plans--compact { max-width: 880px; margin-top: 28px; }
+.plans--compact .box { padding: 22px 24px; }
+.credit-rule {
+  max-width: 36em;
+  margin: 0 auto;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.section-head + .credit-rule { margin-top: 28px; }
 .plans-note {
   max-width: 34em;
   margin: 24px auto 0;
@@ -838,16 +965,16 @@ p { margin: 0; }
   margin-top: auto;
   padding-top: 14px;
   color: var(--text);
-  font-size: clamp(1.875rem, 6vw, 2.625rem);
+  font-size: clamp(1.375rem, 3.2vw, 1.75rem);
   font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1.15;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-decoration-color: var(--accent);
-  text-underline-offset: 7px;
+  text-underline-offset: 6px;
 }
 .example-number:hover { color: var(--text); text-decoration-thickness: 3px; }
 .demo-callout .example-number { padding-top: 6px; }
@@ -865,13 +992,22 @@ p { margin: 0; }
   margin: 14px 0 0;
   padding: 0;
   list-style: none;
-  color: var(--text);
+  color: #b4b4ba;
   font-size: clamp(1.75rem, 5.5vw, 3rem);
   font-weight: 700;
   letter-spacing: -0.045em;
   line-height: 1.12;
 }
-.typelist li:nth-child(even) { color: var(--text-tone); }
+.typelist li {
+  display: inline-block;
+  transition: transform 0.25s var(--ease), color 0.25s var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .typelist li:hover { transform: translateY(-3px); color: #ffffff; }
+}
+@media (hover: none) {
+  .typelist li:active { transform: translateY(-3px); color: #ffffff; }
+}
 
 /* ---------- About ---------- */
 .about-grid {
@@ -1108,4 +1244,8 @@ html:not(.js) .accordion-panel { grid-template-rows: 1fr; }
     animation-duration: 0.01ms !important;
   }
   .js .reveal { opacity: 1; transform: none; }
+  .box:hover,
+  .box:active,
+  .typelist li:hover,
+  .typelist li:active { transform: none; }
 }
