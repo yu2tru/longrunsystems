@@ -1287,49 +1287,48 @@ textarea {
   -webkit-touch-callout: default;
 }
 
-/* ---------- Hero entrance ----------
-   The hero headline sits inside a .hero-fade wrapper and only the wrapper
-   animates, so the gradient-clipped text itself never carries opacity or a
-   transform. Same duration and easing as the scroll reveal below, staggered
-   by --hero-i. The hidden state exists only once html.js is set in <head>,
-   so without JavaScript the hero is simply visible; the failsafe animation
-   shows it anyway after 4s if the script never runs. */
-.js .hero-fade {
-  opacity: 0;
-  transform: translate3d(0, 10px, 0);
-  transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
-  transition-delay: calc(var(--hero-i, 0) * 0.12s);
-  animation: hero-failsafe 0s 4s forwards;
+/* ---------- Reveal: the one system every animated element uses ----------
+   Hidden state: .reveal, only while html.js is set (added in <head>), so it
+   is present at first paint and never applies without JavaScript.
+   Visible state: .is-visible, added by script.js, either after a double
+   requestAnimationFrame (already on screen at load) or by the one
+   IntersectionObserver (everything below). Timing lives in these custom
+   properties only. Stagger is data-reveal-step, set by the script in DOM
+   order. Gradient headlines and pricing panels are never .reveal
+   themselves: a plain wrapper carries the class. */
+:root {
+  --reveal-duration: 1.2s;
+  --reveal-ease: var(--ease);
+  --reveal-shift: 10px;
+  --reveal-step: 0.12s;
 }
-.js .hero-fade:not(.is-done) { will-change: opacity, transform; }
-.js .hero-fade.is-visible {
-  opacity: 1;
-  transform: none;
-}
-@keyframes hero-failsafe { to { opacity: 1; transform: none; } }
-
-/* ---------- Scroll reveal ---------- */
-/* Hidden state is set by CSS before any script runs (html.js is added in
-   <head>), so nothing can paint in its final state first. The layer hint
-   keeps the fade on the compositor on slow phones and is dropped once done. */
 .js .reveal {
   opacity: 0;
-  transform: translate3d(0, 10px, 0);
-  transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
+  transform: translate3d(0, var(--reveal-shift), 0);
+  transition:
+    opacity var(--reveal-duration) var(--reveal-ease),
+    transform var(--reveal-duration) var(--reveal-ease);
 }
 .js .reveal:not(.is-done) { will-change: opacity, transform; }
+.js .reveal[data-reveal-step="1"] { transition-delay: calc(var(--reveal-step) * 1); }
+.js .reveal[data-reveal-step="2"] { transition-delay: calc(var(--reveal-step) * 2); }
+.js .reveal[data-reveal-step="3"] { transition-delay: calc(var(--reveal-step) * 3); }
+.js .reveal[data-reveal-step="4"] { transition-delay: calc(var(--reveal-step) * 4); }
 .js .reveal.is-visible {
   opacity: 1;
   transform: none;
 }
+/* If script.js never runs, nothing stays hidden: once the script starts it
+   sets html.reveal-ready, which removes this failsafe before it fires. */
+.js:not(.reveal-ready) .reveal { animation: reveal-failsafe 0s 3s forwards; }
+@keyframes reveal-failsafe { to { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
-  .js .reveal { opacity: 1; transform: none; }
-  .js .hero-fade { opacity: 1; transform: none; transition: none; animation: none; }
+  .js .reveal { opacity: 1; transform: none; transition: none; animation: none; }
   .box:hover,
   .box.is-pressed,
   .typelist li:hover,

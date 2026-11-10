@@ -3,24 +3,6 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-  // Hero entrance: CSS draws the hero hidden at first paint. Wait two frames
-  // so that hidden state has been painted, flush styles, then show it; the
-  // transition always has a starting point. Stagger comes from --hero-i.
-  var heroBits = document.querySelectorAll(".hero-fade");
-  heroBits.forEach(function (el) {
-    el.addEventListener("transitionend", function (event) {
-      if (event.target === el && event.propertyName === "opacity") el.classList.add("is-done");
-    });
-  });
-  window.requestAnimationFrame(function () {
-    window.requestAnimationFrame(function () {
-      heroBits.forEach(function (el) {
-        void el.offsetWidth; // commit the hidden state before changing it
-        el.classList.add("is-visible");
-      });
-    });
-  });
-
   // Where a section should land: just below the fixed header.
   var landingY = function (target) {
     var bar = document.querySelector(".site-header");
@@ -328,30 +310,62 @@
     }).observe(seq);
   });
 
-  // Scroll reveal
-  var items = document.querySelectorAll(".reveal");
-  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduce || !("IntersectionObserver" in window)) {
-    items.forEach(function (el) { el.classList.add("is-visible", "is-done"); });
+  // Reveal: the one path every .reveal element on every page goes through.
+  // Elements already on screen at load are shown after a double
+  // requestAnimationFrame, so their hidden state has painted. Everything else
+  // is shown by one IntersectionObserver as it enters. Either way a group
+  // that appears together staggers in DOM order (data-reveal-step 0 to 4),
+  // and no element is shown twice.
+  var items = Array.prototype.slice.call(document.querySelectorAll(".reveal"));
+  var root = document.documentElement;
+  var showNow = function (el) { el.classList.add("is-visible", "is-done"); };
+  // The CSS failsafe reveals everything 3s after first paint if this script
+  // never runs. If it already fired (a very slow load), keep things visible.
+  if (window.performance && performance.now() > 3000) items.forEach(showNow);
+  root.classList.add("reveal-ready");
+  if (reduceMotion.matches || !("IntersectionObserver" in window)) {
+    items.forEach(showNow);
     return;
   }
-  // Trigger as soon as an element enters (threshold 0), then wait two frames
-  // so its hidden state has painted before the change. Without that, things
-  // already on screen at load could land in their final state with no fade.
-  var observer = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (!entry.isIntersecting) return;
-      var el = entry.target;
-      observer.unobserve(el);
-      window.requestAnimationFrame(function () {
-        window.requestAnimationFrame(function () { el.classList.add("is-visible"); });
-      });
-    });
-  }, { rootMargin: "0px 0px -6% 0px", threshold: 0 });
   items.forEach(function (el) {
     el.addEventListener("transitionend", function (event) {
-      if (event.target === el && event.propertyName === "opacity") el.classList.add("is-done");
+      if (event.target === el && event.propertyName === "opacity") {
+        el.classList.add("is-done");
+        el.removeAttribute("data-reveal-step");
+      }
     });
-    observer.observe(el);
   });
+  var reveal = function (group) {
+    var step = 0;
+    group.forEach(function (el) {
+      if (el.classList.contains("is-visible")) return;
+      el.setAttribute("data-reveal-step", String(Math.min(step++, 4)));
+      void el.offsetWidth; // commit the hidden state before changing it
+      el.classList.add("is-visible");
+    });
+  };
+  var afterPaint = function (fn) {
+    window.requestAnimationFrame(function () { window.requestAnimationFrame(fn); });
+  };
+  var onScreen = [], later = [];
+  items.forEach(function (el) {
+    if (el.classList.contains("is-visible")) return;
+    var box = el.getBoundingClientRect();
+    (box.bottom > 0 && box.top < window.innerHeight ? onScreen : later).push(el);
+  });
+  afterPaint(function () { reveal(onScreen); });
+  var observer = new IntersectionObserver(function (entries) {
+    var group = [];
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      observer.unobserve(entry.target);
+      group.push(entry.target);
+    });
+    if (!group.length) return;
+    group.sort(function (x, y) {
+      return x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+    });
+    afterPaint(function () { reveal(group); });
+  }, { rootMargin: "0px 0px -6% 0px", threshold: 0 });
+  later.forEach(function (el) { observer.observe(el); });
 })();
