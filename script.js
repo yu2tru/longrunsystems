@@ -1,13 +1,43 @@
 (function () {
   document.getElementById("year").textContent = new Date().getFullYear();
 
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  // Where a section should land: just below the fixed header.
+  var landingY = function (target) {
+    var bar = document.querySelector(".site-header");
+    var y = target.getBoundingClientRect().top + window.pageYOffset - (bar ? bar.offsetHeight : 0) - 16;
+    return Math.max(0, Math.min(y, document.documentElement.scrollHeight - window.innerHeight));
+  };
+  // One requestAnimationFrame loop, ease-in-out over 800ms. Any wheel, touch,
+  // or key press hands control back to the reader. Reduced motion: jump.
+  var scrollRun = 0;
+  var smoothScrollTo = function (y) {
+    var run = ++scrollRun;
+    if (reduceMotion.matches) { window.scrollTo(0, y); return; }
+    var from = window.pageYOffset, dist = y - from, start = null, duration = 800;
+    if (Math.abs(dist) < 2) return;
+    var ease = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+    var step = function (now) {
+      if (run !== scrollRun) return;
+      if (start === null) start = now;
+      var t = Math.min(1, (now - start) / duration);
+      window.scrollTo(0, from + dist * ease(t));
+      if (t < 1) window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame(step);
+  };
+  ["wheel", "touchstart", "keydown"].forEach(function (type) {
+    window.addEventListener(type, function () { scrollRun++; }, { passive: true });
+  });
+
   // In-page links scroll without adding "#section" to the address bar.
-  // Arriving with a hash (a link like "../#examples" from another page):
-  // go to that section, then tidy the hash off the URL.
+  // Arriving with a hash (a link like "../#contact" from another page):
+  // go straight to that section, then tidy the hash off the URL.
   if (location.hash) {
     var arrival = document.getElementById(location.hash.slice(1));
     history.replaceState(null, "", location.pathname + location.search);
-    if (arrival) arrival.scrollIntoView({ behavior: "instant" });
+    if (arrival) window.scrollTo(0, landingY(arrival));
   }
   document.addEventListener("click", function (event) {
     var link = event.target.closest("a");
@@ -17,17 +47,36 @@
     if (href === "#") { event.preventDefault(); return; } // placeholder links
     if (href === "./") {
       event.preventDefault();
-      window.scrollTo({ top: 0 });
+      smoothScrollTo(0);
       return;
     }
     if (!href || href.charAt(0) !== "#") return;
     var target = document.getElementById(href.slice(1));
     if (!target) return;
     event.preventDefault();
-    target.scrollIntoView();
+    smoothScrollTo(landingY(target));
     target.setAttribute("tabindex", "-1");
     target.focus({ preventScroll: true });
   });
+
+  // Press and hold on touch counts as hover: a panel lifts, a qualifying word
+  // brightens. Released on lift-off, on pointercancel (which fires when the
+  // gesture turns into a scroll), or on any page scroll, so nothing sticks.
+  var pressed = null;
+  var release = function () {
+    if (pressed) { pressed.classList.remove("is-pressed"); pressed = null; }
+  };
+  document.addEventListener("pointerdown", function (event) {
+    if (event.pointerType === "mouse") return;
+    var el = event.target.closest(".box, .typelist li");
+    if (!el) return;
+    release();
+    pressed = el;
+    el.classList.add("is-pressed");
+  }, { passive: true });
+  document.addEventListener("pointerup", release, { passive: true });
+  document.addEventListener("pointercancel", release, { passive: true });
+  window.addEventListener("scroll", release, { passive: true });
 
   // Mobile menu: a toggle that turns into an X, and a drawer from the right
   // listing the same links as the desktop nav.
@@ -141,7 +190,6 @@
   // normal scrolling resumes. Touch, narrow screens, or a viewport too short to
   // hold the pinned section: a native swipe carousel. Reduced motion: CSS lays
   // the panels out as a plain grid and nothing here pins or moves them.
-  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   var pinQuery = window.matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine)");
   var tracks = [];
   document.querySelectorAll("[data-hscroll]").forEach(function (section) {
@@ -240,145 +288,52 @@
   window.addEventListener("load", markHeads);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(markHeads);
 
-  // Sequence marker: a blue dot hops along the process line, squashing on
-  // take-off and landing, turns into a green check on the last step with a
-  // small ring, then exits past the edge and comes back around. Runs only
-  // while the panel is on screen. Reduced motion: CSS hides it and shows a
-  // still check instead.
-  var sequences = document.querySelectorAll(".sequence");
-  if (sequences.length && !reduceMotion.matches && Element.prototype.animate) {
-    sequences.forEach(runSequence);
-  }
-
-  function runSequence(seq) {
+  // Process animation: CSS keyframes on overlay spans (transform and opacity
+  // only). The script only adds the spans and pauses the cycle off screen.
+  document.querySelectorAll(".sequence").forEach(function (seq) {
     var steps = seq.querySelectorAll(".sequence-step");
-    if (steps.length < 2) return;
-    var ball = document.createElement("span");
-    ball.className = "seq-ball";
-    ball.setAttribute("aria-hidden", "true");
-    ball.innerHTML = '<span class="seq-ball-ring"></span><span class="seq-ball-dot"></span>' +
-      '<svg class="seq-ball-check" viewBox="0 0 23 23" focusable="false"><path d="M7.4 11.9 L10.2 14.6 L15.6 8.9"/></svg>';
-    seq.appendChild(ball);
-    var dot = ball.querySelector(".seq-ball-dot");
-    var ring = ball.querySelector(".seq-ball-ring");
-    var tick = ball.querySelector(".seq-ball-check path");
-    var styles = window.getComputedStyle(seq);
-    var blue = styles.getPropertyValue("--accent").trim();
-    var green = styles.getPropertyValue("--ok").trim();
-
-    var visible = false, waiting = [];
-    new IntersectionObserver(function (entries) {
-      visible = entries[0].isIntersecting;
-      if (visible) { waiting.forEach(function (go) { go(); }); waiting = []; }
-    }).observe(seq);
-    var whenVisible = function () {
-      return visible ? Promise.resolve() : new Promise(function (go) { waiting.push(go); });
-    };
-    var wait = function (ms) { return new Promise(function (go) { setTimeout(go, ms); }); };
-    // Play keyframes, then keep the end state as plain style so nothing piles up.
-    var play = function (el, frames, opts) {
-      var a = el.animate(frames, Object.assign({ fill: "forwards" }, opts));
-      return a.finished.then(function () {
-        var end = frames[frames.length - 1];
-        Object.keys(end).forEach(function (k) { if (k !== "offset" && k !== "easing") el.style[k] = end[k]; });
-        a.cancel();
-      });
-    };
-    var at = function (p) { return "translate(" + p.x.toFixed(1) + "px," + p.y.toFixed(1) + "px)"; };
-    // Center of step i's static dot, measured fresh each time (layout can change).
-    var center = function (i) {
-      var st = steps[i], cs = window.getComputedStyle(st, "::before");
-      var sr = st.getBoundingClientRect(), qr = seq.getBoundingClientRect();
-      return {
-        x: sr.left - qr.left + parseFloat(cs.left) + parseFloat(cs.width) / 2,
-        y: sr.top - qr.top + parseFloat(cs.top) + parseFloat(cs.height) / 2
-      };
-    };
-    var squashUp = [{ transform: "scale(1,1)" }, { transform: "scale(1.24,0.76)", offset: 0.6 }, { transform: "scale(0.9,1.12)" }];
-    var squashDown = [{ transform: "scale(0.94,1.07)" }, { transform: "scale(1.26,0.74)", offset: 0.35 }, { transform: "scale(0.97,1.03)", offset: 0.7 }, { transform: "scale(1,1)" }];
-    // One hop: anticipation squash, an arc sampled point by point (bulging
-    // up when moving sideways, outward when moving down), and a landing squash.
-    var hop = function (a, b, lift) {
-      var dx = b.x - a.x, dy = b.y - a.y, len = Math.sqrt(dx * dx + dy * dy) || 1;
-      var nx = dy / len, ny = -dx / len, h = lift || Math.min(30, 10 + len * 0.1);
-      var path = [];
-      for (var i = 0; i <= 24; i++) {
-        var t = i / 24, up = 4 * t * (1 - t) * h;
-        path.push({ transform: at({ x: a.x + dx * t + nx * up, y: a.y + dy * t + ny * up }), offset: t });
+    steps.forEach(function (step, i) {
+      if (i < steps.length - 1) {
+        var line = document.createElement("span");
+        line.className = "seq-progress";
+        line.setAttribute("aria-hidden", "true");
+        step.appendChild(line);
       }
-      return play(dot, squashUp, { duration: 170, easing: "ease-in-out" }).then(function () {
-        return Promise.all([
-          play(ball, path, { duration: Math.min(720, 380 + len * 0.6), easing: "cubic-bezier(0.45, 0.05, 0.55, 0.95)" }),
-          play(dot, [{ transform: "scale(0.9,1.12)" }, { transform: "scale(1,1)", offset: 0.5 }, { transform: "scale(0.94,1.07)" }], { duration: Math.min(720, 380 + len * 0.6) })
-        ]);
-      }).then(function () {
-        return play(dot, squashDown, { duration: 280, easing: "ease-out" });
-      });
-    };
-
-    var loop = function () {
-      var n = steps.length, i = 0;
-      var next = function () {
-        return whenVisible().then(function () { return wait(1000); }).then(function () {
-          if (i < n - 1) { i++; return hop(center(i - 1), center(i)).then(i < n - 1 ? next : finish); }
-          return finish();
-        });
-      };
-      var finish = function () {
-        // Blue to green, then into a check, with one quiet ring.
-        return play(dot, [{ backgroundColor: blue }, { backgroundColor: green }], { duration: 240, easing: "ease-out" }).then(function () {
-          return Promise.all([
-            play(dot, [{ transform: "scale(1,1)" }, { transform: "scale(1.45,1.45)" }], { duration: 300, easing: "cubic-bezier(0.3, 1.3, 0.5, 1)" }),
-            play(tick, [{ strokeDashoffset: "20" }, { strokeDashoffset: "0" }], { duration: 380, delay: 120, easing: "cubic-bezier(0.3, 0.7, 0.3, 1)" }),
-            play(ring, [{ transform: "scale(1)", opacity: 0.7 }, { transform: "scale(3.4)", opacity: 0 }], { duration: 820, delay: 80, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" })
-          ]);
-        }).then(function () { return wait(2000); }).then(function () {
-          // Back to a blue dot.
-          return Promise.all([
-            play(tick, [{ strokeDashoffset: "0" }, { strokeDashoffset: "20" }], { duration: 260, easing: "ease-in" }),
-            play(dot, [{ transform: "scale(1.45,1.45)", backgroundColor: green }, { transform: "scale(1,1)", backgroundColor: blue }], { duration: 380, delay: 120, easing: "ease-in-out" })
-          ]);
-        }).then(function () { return wait(400); }).then(exitAndReturn);
-      };
-      // Hop to the far edge (right, or bottom when the line runs down), squash
-      // against it, slip out, then come back in from the opposite edge.
-      var exitAndReturn = function () {
-        var first = center(0), second = center(1), last = center(n - 1);
-        var across = Math.abs(second.x - first.x) >= Math.abs(second.y - first.y);
-        var w = seq.clientWidth, hgt = seq.clientHeight;
-        var edge = across ? { x: w - 7, y: last.y } : { x: last.x, y: hgt - 7 };
-        var out = across ? { x: w + 18, y: last.y } : { x: last.x, y: hgt + 18 };
-        var start = across ? { x: -18, y: first.y } : { x: first.x, y: -18 };
-        var enter = across ? { x: 8, y: first.y } : { x: first.x, y: 8 };
-        return hop(last, edge, 16).then(function () {
-          return play(ball, [{ transform: at(edge), opacity: 1 }, { transform: at(out), opacity: 0 }], { duration: 320, easing: "ease-in" });
-        }).then(function () { return wait(500); }).then(function () {
-          return play(ball, [{ transform: at(start), opacity: 0 }, { transform: at(enter), opacity: 1 }], { duration: 300, easing: "ease-out" });
-        }).then(function () {
-          return hop(enter, center(0), 14);
-        }).then(loop);
-      };
-      return next();
-    };
-
-    ball.style.transform = at(center(0));
-    loop();
-  }
+      var fill = document.createElement("span");
+      fill.className = "seq-fill";
+      fill.setAttribute("aria-hidden", "true");
+      step.appendChild(fill);
+    });
+    if (!("IntersectionObserver" in window)) { seq.classList.add("is-running"); return; }
+    new IntersectionObserver(function (entries) {
+      seq.classList.toggle("is-running", entries[0].isIntersecting);
+    }).observe(seq);
+  });
 
   // Scroll reveal
   var items = document.querySelectorAll(".reveal");
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduce || !("IntersectionObserver" in window)) {
-    items.forEach(function (el) { el.classList.add("is-visible"); });
+    items.forEach(function (el) { el.classList.add("is-visible", "is-done"); });
     return;
   }
+  // Trigger as soon as an element enters (threshold 0), then wait two frames
+  // so its hidden state has painted before the change. Without that, things
+  // already on screen at load could land in their final state with no fade.
   var observer = new IntersectionObserver(function (entries) {
     entries.forEach(function (entry) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("is-visible");
-        observer.unobserve(entry.target);
-      }
+      if (!entry.isIntersecting) return;
+      var el = entry.target;
+      observer.unobserve(el);
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () { el.classList.add("is-visible"); });
+      });
     });
-  }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
-  items.forEach(function (el) { observer.observe(el); });
+  }, { rootMargin: "0px 0px -6% 0px", threshold: 0 });
+  items.forEach(function (el) {
+    el.addEventListener("transitionend", function (event) {
+      if (event.target === el && event.propertyName === "opacity") el.classList.add("is-done");
+    });
+    observer.observe(el);
+  });
 })();

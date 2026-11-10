@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Examples | Long Run Systems</title>
+<meta name="description" content="A live AI receptionist demo line and websites built by Long Run Systems in the Sarasota area.">
+<meta name="theme-color" content="#0c0c0d">
+<script>document.documentElement.classList.add("js");</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="wordmark" href="../">Long Run Systems</a>
+    <nav aria-label="Primary">
+      <ul class="site-nav" role="list">
+        <li class="nav-section"><a class="header-link" href="../receptionist/">Receptionist</a></li>
+        <li class="nav-section"><a class="header-link" href="../websites/">Websites</a></li>
+        <li class="nav-section"><a class="header-link" href="../automation/">Automation</a></li>
+        <li class="nav-section"><a class="header-link" href="../lead-scraper/">Lead Scraper</a></li>
+        <li class="nav-section"><a class="header-link" href="../examples/" aria-current="page">Examples</a></li>
+        <li class="nav-section"><a class="header-link" href="../faq/">FAQ</a></li>
+        <li><a class="header-link" href="../contact/">Get in touch</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="hero hero--page" aria-labelledby="hero-title">
+    <div class="container center">
+      <h1 id="hero-title" class="reveal">See it <span class="tone">working.</span></h1>
+      <p class="lede reveal">Everything here is running, not a mockup. Call the demo line and hear the receptionist for yourself, or look through sites I've built.</p>
+      <div class="actions reveal">
+        <a class="btn" href="#contact">Start a conversation</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--light section--snug" id="examples" aria-labelledby="examples-title">
+    <div class="container center">
+      <h2 id="examples-title" class="visually-hidden">Demo line and sites</h2>
+
+      <!--
+        EXAMPLE BOXES
+        The first box is the live receptionist demo; the rest are websites.
+        To add one, copy a website <li>, then set the link, tag, name, and description.
+        Use "boxes--pair" for two boxes and "boxes--3" for three or more.
+      -->
+      <ul class="boxes boxes--pair" role="list">
+        <li class="reveal">
+          <div class="box">
+            <p class="example-tag"><span class="status-dot" aria-hidden="true"></span>AI receptionist, live</p>
+            <h3>Blue Jay Mobile Detail</h3>
+            <p>Elliot answers the phone for a mobile detailing business. Ask about packages or book a detail, and he handles the call start to finish.</p>
+            <!-- DEMO NUMBER: update both the href and the visible text -->
+            <a class="example-number" href="tel:+19419778411" aria-label="Call the demo line at 941 977 8411">(941) 977-8411</a>
+          </div>
+        </li>
+        <li class="reveal">
+          <div class="box">
+            <p class="example-tag">Website, concept</p>
+            <h3>Level Up Tutoring</h3>
+            <p>A site for an online K-5 tutoring business I was planning, with subjects and a clear way to book.</p>
+            <a class="example-link" href="https://tutoring.yusufjax1.workers.dev/" target="_blank" rel="noopener">Visit site <span class="arrow" aria-hidden="true">&nearr;</span></a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+
+  <section class="section section--band" id="contact" aria-labelledby="contact-title">
+    <div class="container contact-grid">
+      <div>
+        <h2 id="contact-title" class="reveal">Tell me <span class="tone">what you need.</span></h2>
+        <p class="lede reveal">A few lines is enough. I reply within one business day.</p>
+        <div class="contact-aside reveal">
+          <p>Or call <a href="tel:+19417827673">(941) 782-7673</a></p>
+          <p>Or email <a href="mailto:yusufjax1@gmail.com">yusufjax1@gmail.com</a></p>
+        </div>
+      </div>
+
+      <!-- FORMSPREE: form endpoint. To use a different form, replace the ID at the end of the action URL. -->
+      <form class="form reveal" action="https://formspree.io/f/meaelvea" method="POST">
+        <!-- PAGE SOURCE: identifies which page this submission came from. -->
+        <input type="hidden" name="page_source" value="examples">
+        <input type="hidden" name="_subject" value="New inquiry from the examples page">
+        <!-- Spam trap: bots fill this in, people never see it. display:none keeps browser autofill
+             away from it, which would otherwise get real submissions marked as spam. -->
+        <div style="display: none" aria-hidden="true">
+          <label for="hp-field">Leave this empty</label>
+          <input id="hp-field" type="text" name="_gotcha" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="business">Business name</label>
+          <input id="business" name="business" type="text" autocomplete="organization" required>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required>
+        </div>
+        <div class="field">
+          <label for="phone">Phone <span class="optional">(optional)</span></label>
+          <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel">
+        </div>
+        <div class="field field--full">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="5" placeholder="What does your business do, and what would you like handled?" required></textarea>
+        </div>
+        <div class="form-footer field--full">
+          <button class="btn" type="submit">Send message</button>
+          <p class="form-note" id="form-status" role="status" aria-live="polite">No mailing list. Just a reply.</p>
+        </div>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <p class="footer-name">Long Run Systems</p>
+    <div class="footer-links">
+      <a href="tel:+19417827673">(941) 782-7673</a>
+      <a href="mailto:yusufjax1@gmail.com">yusufjax1@gmail.com</a>
+    </div>
+    <p class="copyright">&copy; <span id="year">2026</span> Long Run Systems</p>
+  </div>
+</footer>
+
+<script src="../script.js" defer></script>
+</body>
+</html>
