@@ -1267,15 +1267,13 @@ html:not(.js) .accordion-panel { grid-template-rows: 1fr; }
 .footer-links a:hover { color: var(--text); }
 .copyright { color: var(--text-faint); }
 
-/* ---------- Text selection ---------- */
-h1, h2, h3,
-.box,
-.sequence,
-.typelist,
-.btn,
-.site-header,
-.drawer,
-.accordion-trigger {
+/* ---------- Text selection ----------
+   Off everywhere by default, so a press-and-hold anywhere (a panel, or text
+   beside one) never highlights anything. Descendants left at "auto" resolve
+   to "none" under this body rule. Back on only for phone numbers, email
+   addresses, and form fields: people copy those, and a long-press on a tel:
+   link is how a number gets saved to contacts. */
+body {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
