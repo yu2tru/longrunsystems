@@ -6,7 +6,17 @@
 <title>Long Run Systems</title>
 <meta name="description" content="Phone answering, websites, automation, and lead finding for local businesses in the Sarasota area. Set up once, running from then on.">
 <meta name="theme-color" content="#0c0c0d">
-<script>document.documentElement.classList.add("js");</script>
+<script>
+document.documentElement.classList.add("js");
+// Scroll position: the browser no longer restores it on its own. A reload
+// opens at the top (unless the URL has an anchor). A tab you return to that
+// never reloaded (bfcache) is untouched and keeps its place.
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+(function () {
+  var nav = window.performance && performance.getEntriesByType ? performance.getEntriesByType("navigation")[0] : null;
+  if (nav && nav.type === "reload" && !location.hash) window.scrollTo(0, 0);
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">

@@ -3,6 +3,42 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
+  // Hero height: CSS sizes it to one screen with dvh. Read that exact value
+  // and lock it, re-measuring only when the width changes (rotation) or the
+  // window is resized with a mouse, never when a mobile toolbar collapses.
+  var heroes = document.querySelectorAll(".hero");
+  var finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+  var lockedWidth = 0;
+  var lockHero = function () {
+    if (!heroes.length) return;
+    var html = document.documentElement;
+    html.classList.remove("hero-locked");
+    html.style.setProperty("--hero-h", window.getComputedStyle(heroes[0]).minHeight);
+    html.classList.add("hero-locked");
+    lockedWidth = window.innerWidth;
+  };
+  lockHero();
+  window.addEventListener("resize", function () {
+    if (window.innerWidth !== lockedWidth || finePointer.matches) lockHero();
+  });
+
+  // Scroll position: with restoration set to manual (see <head>), a reload
+  // opens at the top. Back and forward still return to where you were: the
+  // position is saved when you leave and put back only for a back_forward
+  // navigation that reloaded the page. A page restored from bfcache is
+  // already where you left it and is not touched.
+  var scrollKey = "scroll:" + location.pathname;
+  var navEntry = window.performance && performance.getEntriesByType ? performance.getEntriesByType("navigation")[0] : null;
+  try {
+    if (navEntry && navEntry.type === "back_forward" && !location.hash) {
+      var saved = parseInt(sessionStorage.getItem(scrollKey), 10);
+      if (saved > 0) window.scrollTo(0, saved);
+    }
+  } catch (e) {}
+  window.addEventListener("pagehide", function () {
+    try { sessionStorage.setItem(scrollKey, String(Math.round(window.pageYOffset))); } catch (e) {}
+  });
+
   // Where a section should land: just below the fixed header.
   var landingY = function (target) {
     var bar = document.querySelector(".site-header");
@@ -351,7 +387,10 @@
   items.forEach(function (el) {
     if (el.classList.contains("is-visible")) return;
     var box = el.getBoundingClientRect();
-    (box.bottom > 0 && box.top < window.innerHeight ? onScreen : later).push(el);
+    // Same bottom margin as the observer: text in the bottom 6% of the screen
+    // (or behind a mobile toolbar) waits for the scroll instead of fading
+    // out of sight at load.
+    (box.bottom > 0 && box.top < window.innerHeight * 0.94 ? onScreen : later).push(el);
   });
   afterPaint(function () { reveal(onScreen); });
   var observer = new IntersectionObserver(function (entries) {

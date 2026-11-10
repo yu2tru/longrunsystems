@@ -30,6 +30,7 @@
   --headline-shadow: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.38));
   --ok: #2fa36b;
   --radius: 10px;
+  --header-h: 57px; /* sticky header: 56px bar + 1px border */
   --radius-sm: 8px;
   --max: 1120px;
   --gutter: 20px;
@@ -248,7 +249,7 @@ html { scroll-padding-top: 72px; }
 
 /* Service pages: the page-level hero is a little shorter than the home hero */
 .hero--page {
-  padding: clamp(48px, 8vw, 104px) 0 clamp(64px, 10vw, 112px);
+  padding: 40px 0 calc(48px + env(safe-area-inset-bottom, 0px));
 }
 
 .section-head { max-width: 40em; margin: 0 auto; }
@@ -456,9 +457,23 @@ h1, h2 { filter: var(--headline-shadow); }
   color-scheme: light;
 }
 .section--light + .section { border-top-color: transparent; }
+/* Every hero, together with the sticky header above it, fills exactly one
+   screen, so the next section starts at the bottom edge and none of it shows
+   before scrolling. dvh (vh as a fallback) gives the visible height; then
+   script.js measures it once and locks it (.hero-locked) so a collapsing iOS
+   toolbar never resizes the hero mid-scroll. min-height, not height, so
+   content can never be clipped on a very short screen. Safe-area insets are
+   zero unless the page runs edge to edge, and are covered either way. */
 .hero {
-  padding: clamp(96px, 18vw, 184px) 0 clamp(96px, 16vw, 168px);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(100vh - var(--header-h) - env(safe-area-inset-top, 0px));
+  min-height: calc(100dvh - var(--header-h) - env(safe-area-inset-top, 0px));
+  padding: 32px 0 calc(32px + env(safe-area-inset-bottom, 0px));
 }
+.hero-locked .hero { min-height: var(--hero-h); }
 .hero h1 { max-width: 11em; }
 
 /* ---------- Home hero: spacious, monochrome, high contrast ----------
@@ -473,8 +488,7 @@ h1, h2 { filter: var(--headline-shadow); }
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: min(calc(100svh - 57px), 1040px);
-  padding: clamp(72px, 10vh, 120px) 0 clamp(120px, 20vh, 220px);
+  padding: clamp(56px, 9vh, 120px) 0 calc(clamp(96px, 18vh, 220px) + env(safe-area-inset-bottom, 0px));
   overflow: hidden;
 }
 .hero--home::before,
@@ -511,10 +525,30 @@ h1, h2 { filter: var(--headline-shadow); }
 .scroll-cue {
   position: absolute;
   left: 50%;
-  bottom: 28px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   width: 1px;
   height: 44px;
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.35));
+}
+/* Short screens (a phone in landscape): smaller headline and tighter spacing,
+   so the hero content fits one screen instead of spilling past it. */
+@media (max-height: 600px) {
+  .hero { padding: 20px 0 calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .hero--home { padding: 20px 0 calc(64px + env(safe-area-inset-bottom, 0px)); }
+  .hero h1,
+  .hero--home h1 { font-size: clamp(2rem, 9vh, 3.25rem); }
+  .hero .lede,
+  .hero--home .lede { margin-top: 12px; font-size: 1rem; }
+  .hero .actions,
+  .hero--home .actions { margin-top: 20px; }
+  .hero .demo-callout { margin-top: 20px; padding: 14px 24px 16px; }
+  .scroll-cue { height: 28px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-height: 420px) {
+  .hero { padding: 14px 0 calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .hero .actions,
+  .hero--home .actions { margin-top: 16px; }
+  .hero .demo-callout { margin-top: 14px; padding: 10px 20px 12px; }
 }
 /* Hairline grid on wider screens only; masked so it fades out well before
    the headline and toward the bottom edge. */
