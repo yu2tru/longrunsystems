@@ -3,6 +3,24 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
+  // Hero entrance: CSS draws the hero hidden at first paint. Wait two frames
+  // so that hidden state has been painted, flush styles, then show it; the
+  // transition always has a starting point. Stagger comes from --hero-i.
+  var heroBits = document.querySelectorAll(".hero-fade");
+  heroBits.forEach(function (el) {
+    el.addEventListener("transitionend", function (event) {
+      if (event.target === el && event.propertyName === "opacity") el.classList.add("is-done");
+    });
+  });
+  window.requestAnimationFrame(function () {
+    window.requestAnimationFrame(function () {
+      heroBits.forEach(function (el) {
+        void el.offsetWidth; // commit the hidden state before changing it
+        el.classList.add("is-visible");
+      });
+    });
+  });
+
   // Where a section should land: just below the fixed header.
   var landingY = function (target) {
     var bar = document.querySelector(".site-header");

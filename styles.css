@@ -508,7 +508,6 @@ h1, h2 { filter: var(--headline-shadow); }
 }
 .hero--home .actions { margin-top: clamp(48px, 7vh, 80px); }
 /* Entrance is a short fade only, no movement */
-.js .hero--home .reveal { transform: none; transition: opacity 1s ease; }
 .scroll-cue {
   position: absolute;
   left: 50%;
@@ -1288,6 +1287,27 @@ textarea {
   -webkit-touch-callout: default;
 }
 
+/* ---------- Hero entrance ----------
+   The hero headline sits inside a .hero-fade wrapper and only the wrapper
+   animates, so the gradient-clipped text itself never carries opacity or a
+   transform. Same duration and easing as the scroll reveal below, staggered
+   by --hero-i. The hidden state exists only once html.js is set in <head>,
+   so without JavaScript the hero is simply visible; the failsafe animation
+   shows it anyway after 4s if the script never runs. */
+.js .hero-fade {
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+  transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
+  transition-delay: calc(var(--hero-i, 0) * 0.12s);
+  animation: hero-failsafe 0s 4s forwards;
+}
+.js .hero-fade:not(.is-done) { will-change: opacity, transform; }
+.js .hero-fade.is-visible {
+  opacity: 1;
+  transform: none;
+}
+@keyframes hero-failsafe { to { opacity: 1; transform: none; } }
+
 /* ---------- Scroll reveal ---------- */
 /* Hidden state is set by CSS before any script runs (html.js is added in
    <head>), so nothing can paint in its final state first. The layer hint
@@ -1309,6 +1329,7 @@ textarea {
     animation-duration: 0.01ms !important;
   }
   .js .reveal { opacity: 1; transform: none; }
+  .js .hero-fade { opacity: 1; transform: none; transition: none; animation: none; }
   .box:hover,
   .box.is-pressed,
   .typelist li:hover,
