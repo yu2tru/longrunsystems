@@ -314,6 +314,28 @@ h1, h2 { filter: var(--headline-shadow); }
    one line runs left to right, several lines fall off from the top left.
    Without background-clip support the solid color and .tone spans remain. */
 .grad { width: fit-content; max-width: 100%; }
+/* background-clip: text only paints inside the heading's box, and glyphs
+   overhang it: descenders and tall caps past the tight line-height, the last
+   letter past the right edge (negative letter-spacing). Padding widens the
+   paint area; equal negative margins keep the layout exactly where it was
+   (centred headings keep their auto side margins). script.js measures the
+   line count without this padding. */
+.grad {
+  padding-top: 0.14em;
+  padding-bottom: 0.26em;
+  margin-top: -0.14em;
+  margin-bottom: -0.26em;
+}
+/* Left-aligned headings also get room for the last letter's right overhang
+   (the width cap grows by the same amount, so nothing re-wraps). Centred
+   headings keep their auto side margins and need none. */
+.about-grid .grad,
+.faq-grid .grad,
+.contact-grid .grad {
+  max-width: calc(100% + 0.1em);
+  padding-right: 0.1em;
+  margin-right: -0.1em;
+}
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .grad {
     background-image: linear-gradient(to right, var(--text) 0%, var(--text) 30%, var(--text-tone) 100%);
@@ -1426,11 +1448,15 @@ textarea {
   height: 100%;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 1.6s ease;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
+  transition: opacity 0.35s ease;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
 }
 .hero-shader.is-on { opacity: 1; }
+/* With the smoke running, the home hero's corner light and hairline grid
+   step aside (they would fight it); without WebGL they stay. */
+.has-shader.hero--home::before,
+.has-shader.hero--home .container::before { display: none; }
 /* If script.js never runs, nothing stays hidden: once the script starts it
    sets html.reveal-ready, which removes this failsafe before it fires. */
 .js:not(.reveal-ready) .reveal { animation: reveal-failsafe 0s 3s forwards; }

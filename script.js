@@ -309,8 +309,10 @@
   var markHeads = function () {
     heads.forEach(function (h) {
       h.classList.add("grad");
-      var lh = parseFloat(window.getComputedStyle(h).lineHeight);
-      var lines = lh ? Math.round(h.getBoundingClientRect().height / lh) : 1;
+      var cs = window.getComputedStyle(h);
+      var lh = parseFloat(cs.lineHeight);
+      var textHeight = h.getBoundingClientRect().height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      var lines = lh ? Math.round(textHeight / lh) : 1;
       h.classList.toggle("grad--multi", lines > 1);
     });
   };
@@ -438,6 +440,7 @@
       "#endif",
       "uniform vec2 u_res;",
       "uniform float u_time;",
+      "uniform vec2 u_seed;",
       "float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }",
       "float noise(vec2 p) {",
       "  vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);",
@@ -461,16 +464,26 @@
       "}",
       "void main() {",
       "  vec2 uv = gl_FragCoord.xy / u_res;",
-      "  vec2 p = uv * vec2(u_res.x / u_res.y, 1.0) * 1.4;",
+      // billows about the size of the reference's, sized to the hero's height
+      // (a phone and a desktop show the same smoke scale), offset by a random seed
+      "  vec2 p = gl_FragCoord.xy / u_res.y * 2.8 + u_seed;",
       "  float t = u_time;",
-      // domain warping: noise displacing noise, drifting slowly, never periodic
-      "  vec2 q = vec2(fbm3(p + vec2(0.0, t * 0.045)), fbm3(p + vec2(5.2, 1.3) - t * 0.035));",
-      "  vec2 r = vec2(fbm3(p + 2.2 * q + vec2(1.7, 9.2) + t * 0.025), fbm3(p + 2.2 * q + vec2(8.3, 2.8) - t * 0.03));",
-      "  float n = fbm(p + 2.4 * r);",
-      // near black through mid grey, with a soft highlight on the brightest bands
-      "  float band = smoothstep(0.35, 0.85, n);",
-      "  float l = mix(0.035, 0.15, band) + 0.09 * pow(smoothstep(0.55, 0.95, n), 2.0);",
-      "  l *= mix(0.7, 1.0, uv.y);",
+      // smoke: noise warping noise twice, each layer flowing its own way
+      "  vec2 q = vec2(fbm3(p + vec2(0.30, 0.20) * t), fbm3(p + vec2(5.2, 1.3) - vec2(0.20, 0.30) * t));",
+      // a moderate warp (2.4) keeps it puffy smoke rather than marbled ridges,
+      // a touch softer than the reference
+      "  vec2 r = vec2(fbm3(p + 2.4 * q + vec2(1.7, 9.2) + 0.45 * t), fbm3(p + 2.4 * q + vec2(8.3, 2.8) - 0.38 * t));",
+      "  float f = fbm(p + 2.4 * r);",
+      // shade it in greys: denser smoke is lighter, the warp adds dark folds
+      // and bright wisps
+      "  float c = mix(0.10, 0.34, clamp(f * f * 4.0, 0.0, 1.0));",
+      "  c = mix(c, 0.03, clamp(length(q), 0.0, 1.0) * 0.55);",
+      "  c = mix(c, 0.72, clamp(r.x * r.x, 0.0, 1.0) * 0.5);",
+      "  float l = (f * f * f + 0.6 * f * f + 0.5 * f) * c * 1.75;",
+      // a little calmer behind the text block so the headline stays readable
+      "  vec2 d = (uv - vec2(0.5, 0.56)) * vec2(1.0, 1.35);",
+      "  l *= mix(0.55, 1.0, smoothstep(0.12, 0.62, length(d)));",
+      "  l = clamp(l, 0.0, 0.62);",
       "  l += (bayer4(gl_FragCoord.xy) - 0.5) / 255.0;",
       "  gl_FragColor = vec4(vec3(l), 1.0);",
       "}"
@@ -496,10 +509,13 @@
     gl.enableVertexAttribArray(loc);
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     var uRes = gl.getUniformLocation(prog, "u_res"), uTime = gl.getUniformLocation(prog, "u_time");
+    // a different pattern every time a page opens
+    gl.uniform2f(gl.getUniformLocation(prog, "u_seed"), Math.random() * 100, Math.random() * 100);
 
     heroSection.insertBefore(canvas, heroSection.firstChild);
     var small = window.matchMedia("(max-width: 767px)");
-    var offset = Math.random() * 200; // a different starting point each visit
+    var offset = Math.random() * 200; // and a different moment in its motion
+    var speed = 0.24;                 // fast enough to see the smoke move within seconds
     var started = null, last = 0, raf = 0, onScreenNow = true, alive = true;
     // Backing store = the canvas's own CSS size times the pixel ratio (capped
     // at 2x on desktop, 1.5x under 768px); the CSS size stays 100% of the hero.
@@ -515,7 +531,7 @@
       gl.uniform2f(uRes, w, h);
     };
     var draw = function (seconds) {
-      gl.uniform1f(uTime, offset + seconds);
+      gl.uniform1f(uTime, offset + seconds * speed);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     // Frame-rate governor: each second, compare the draws actually made with
@@ -547,6 +563,7 @@
     size();
     draw(0);
     canvas.classList.add("is-on");
+    heroSection.classList.add("has-shader");
     if (!reduceMotion.matches) schedule();
     var resized = function () {
       if (!alive) return;
@@ -570,6 +587,7 @@
       alive = false;
       if (raf) window.cancelAnimationFrame(raf);
       canvas.remove();
+      heroSection.classList.remove("has-shader");
     });
   })();
 
