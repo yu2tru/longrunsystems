@@ -1336,22 +1336,90 @@ textarea {
   --reveal-shift: 10px;
   --reveal-step: 0.12s;
 }
+/* A keyframe animation rather than a transition: an animation always plays
+   from its first frame when .is-visible lands, even if the engine never
+   committed the hidden state first (WebKit can skip a transition in that
+   case, which is what made some text pop in on iPhone). */
 .js .reveal {
   opacity: 0;
   transform: translate3d(0, var(--reveal-shift), 0);
-  transition:
-    opacity var(--reveal-duration) var(--reveal-ease),
-    transform var(--reveal-duration) var(--reveal-ease);
 }
 .js .reveal:not(.is-done) { will-change: opacity, transform; }
-.js .reveal[data-reveal-step="1"] { transition-delay: calc(var(--reveal-step) * 1); }
-.js .reveal[data-reveal-step="2"] { transition-delay: calc(var(--reveal-step) * 2); }
-.js .reveal[data-reveal-step="3"] { transition-delay: calc(var(--reveal-step) * 3); }
-.js .reveal[data-reveal-step="4"] { transition-delay: calc(var(--reveal-step) * 4); }
 .js .reveal.is-visible {
   opacity: 1;
   transform: none;
+  animation: reveal-in var(--reveal-duration) var(--reveal-ease) both;
 }
+.js .reveal.is-visible[data-reveal-step="1"] { animation-delay: calc(var(--reveal-step) * 1); }
+.js .reveal.is-visible[data-reveal-step="2"] { animation-delay: calc(var(--reveal-step) * 2); }
+.js .reveal.is-visible[data-reveal-step="3"] { animation-delay: calc(var(--reveal-step) * 3); }
+.js .reveal.is-visible[data-reveal-step="4"] { animation-delay: calc(var(--reveal-step) * 4); }
+@keyframes reveal-in {
+  from { opacity: 0; transform: translate3d(0, var(--reveal-shift), 0); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Hero headline, letter by letter ----------
+   script.js splits the hero h1 into letters (never in the source) and marks
+   its .reveal wrapper .hl-host: the wrapper itself no longer fades, its
+   letters do, on the same trigger. Each letter is two spans. The outer .ch
+   animates (opacity and transform only). The inner .ch-in carries the
+   gradient with background-clip: text, sized to the whole headline and
+   offset by the letter's position, so the letters together show the one
+   continuous gradient. The h1 keeps its gradient value (so the one-line or
+   multi-line rule is unchanged) but paints nothing itself. */
+:root {
+  --hl-letter: 0.6s;  /* each letter's own fade and rise */
+  --hl-spread: 0.5s;  /* first to last letter start, the whole line assembles in about this */
+}
+.js .reveal.hl-host { opacity: 1; transform: none; animation: none; }
+.hl { position: relative; }
+.hl-word { display: inline-block; white-space: nowrap; }
+.hl .ch { display: inline-block; }
+.js .hl .ch { opacity: 0; transform: translate3d(0, 0.18em, 0); }
+.js .hl-host.is-visible .hl .ch {
+  opacity: 1;
+  transform: none;
+  animation: hl-in var(--hl-letter) var(--reveal-ease) both;
+  animation-delay: calc(var(--i, 0) * var(--hl-step, 0.02s));
+}
+@keyframes hl-in {
+  from { opacity: 0; transform: translate3d(0, 0.18em, 0); }
+  to { opacity: 1; transform: none; }
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .grad.hl,
+  .grad.hl * { background-repeat: no-repeat; background-size: 0 0; }
+  .grad.hl * { background-image: inherit; }
+  .grad.hl .ch-in {
+    background-size: var(--hl-w) var(--hl-h);
+    background-position: var(--x, 0) var(--y, 0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* ---------- Hero shader background ----------
+   A WebGL canvas (script.js) behind the hero content: a slow greyscale
+   gradient with grain. Rendered at reduced resolution and scaled up, faded
+   out toward the bottom so it blends into the next section. If WebGL is not
+   available the canvas is never added and the CSS background stays. */
+.hero { isolation: isolate; }
+.hero-shader {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
+}
+.hero-shader.is-on { opacity: 1; }
 /* If script.js never runs, nothing stays hidden: once the script starts it
    sets html.reveal-ready, which removes this failsafe before it fires. */
 .js:not(.reveal-ready) .reveal { animation: reveal-failsafe 0s 3s forwards; }
@@ -1362,7 +1430,9 @@ textarea {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
-  .js .reveal { opacity: 1; transform: none; transition: none; animation: none; }
+  .js .reveal,
+  .js .reveal.is-visible,
+  .js .hl .ch { opacity: 1; transform: none; transition: none; animation: none !important; }
   .box:hover,
   .box.is-pressed,
   .typelist li:hover,

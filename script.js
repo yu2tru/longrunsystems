@@ -324,6 +324,205 @@
   window.addEventListener("load", markHeads);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(markHeads);
 
+  // Hero headline, letter by letter. Split at runtime into words (kept
+  // together so lines still break between words) and letters. Each letter is
+  // an outer .ch that animates and an inner .ch-in that carries a slice of the
+  // headline's one gradient: background sized to the whole headline and
+  // offset by the letter's position. The heading keeps its text as an
+  // aria-label; the letter spans are hidden from screen readers. Reduced
+  // motion: not split at all, the headline shows as it always has.
+  var heroHead = document.querySelector(".hero h1");
+  var placeLetters = function () {};
+  if (heroHead && !reduceMotion.matches && heroHead.parentElement.classList.contains("reveal")) {
+    heroHead.setAttribute("aria-label", heroHead.textContent.replace(/\s+/g, " ").trim());
+    var letters = [];
+    var splitNode = function (node) {
+      Array.prototype.slice.call(node.childNodes).forEach(function (child) {
+        if (child.nodeType === 1) { splitNode(child); return; }
+        if (child.nodeType !== 3) return;
+        var frag = document.createDocumentFragment();
+        child.textContent.split(/(\s+)/).forEach(function (part) {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(" ")); return; }
+          var word = document.createElement("span");
+          word.className = "hl-word";
+          word.setAttribute("aria-hidden", "true");
+          Array.prototype.forEach.call(part, function (chr) {
+            // Punctuation stays in the same span as the letter before it, so
+            // that pair keeps its kerning (a lone "." drifts away otherwise).
+            var prev = word.lastChild;
+            if (prev && /[.,;:?'"\u2019)]/.test(chr)) { prev.firstChild.textContent += chr; return; }
+            var ch = document.createElement("span");
+            ch.className = "ch";
+            var inner = document.createElement("span");
+            inner.className = "ch-in";
+            inner.textContent = chr;
+            ch.appendChild(inner);
+            word.appendChild(ch);
+            letters.push(ch);
+          });
+          frag.appendChild(word);
+        });
+        node.replaceChild(frag, child);
+      });
+    };
+    splitNode(heroHead);
+    heroHead.classList.add("hl");
+    heroHead.parentElement.classList.add("hl-host");
+    letters.forEach(function (ch, i) { ch.style.setProperty("--i", i); });
+    heroHead.style.setProperty("--hl-step", "calc(var(--hl-spread) / " + Math.max(1, letters.length - 1) + ")");
+    // Each letter's position inside the headline, from layout offsets, which
+    // ignore the animation transforms. A transformed .ch becomes its inner
+    // span's offsetParent, so walk the chain up to the heading and add it up.
+    var offsetIn = function (el) {
+      var x = 0, y = 0;
+      while (el && el !== heroHead) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; }
+      return { x: x, y: y };
+    };
+    placeLetters = function () {
+      heroHead.style.setProperty("--hl-w", heroHead.offsetWidth + "px");
+      heroHead.style.setProperty("--hl-h", heroHead.offsetHeight + "px");
+      letters.forEach(function (ch) {
+        var at = offsetIn(ch.firstChild);
+        ch.firstChild.style.setProperty("--x", -at.x + "px");
+        ch.firstChild.style.setProperty("--y", -at.y + "px");
+      });
+    };
+    placeLetters();
+    var lettersQueued = false;
+    window.addEventListener("resize", function () {
+      if (lettersQueued) return;
+      lettersQueued = true;
+      window.requestAnimationFrame(function () { lettersQueued = false; markHeads(); placeLetters(); });
+    });
+    window.addEventListener("load", placeLetters);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { markHeads(); placeLetters(); });
+  }
+
+  // Hero shader: a slow greyscale gradient drawn with WebGL behind the hero.
+  // Capped at 30fps, drawn at half resolution (a third on phones) and scaled
+  // up, paused off screen and in background tabs. Reduced motion: one still
+  // frame. No WebGL, or a lost context: no canvas, and the CSS background
+  // stays as it is.
+  var heroSection = document.querySelector(".hero");
+  if (heroSection) (function () {
+    var canvas = document.createElement("canvas");
+    canvas.className = "hero-shader";
+    canvas.setAttribute("aria-hidden", "true");
+    var gl = null;
+    try {
+      var opts = { alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, powerPreference: "low-power" };
+      gl = canvas.getContext("webgl", opts) || canvas.getContext("experimental-webgl", opts);
+    } catch (e) { gl = null; }
+    if (!gl) return;
+    var vert = "attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }";
+    var frag = [
+      "#ifdef GL_FRAGMENT_PRECISION_HIGH",
+      "precision highp float;",
+      "#else",
+      "precision mediump float;",
+      "#endif",
+      "uniform vec2 u_res;",
+      "uniform float u_time;",
+      "float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }",
+      "float noise(vec2 p) {",
+      "  vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);",
+      "  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);",
+      "}",
+      "float fbm(vec2 p) {",
+      "  float v = 0.0; float a = 0.5;",
+      "  for (int i = 0; i < 4; i++) { v += a * noise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; }",
+      "  return v;",
+      "}",
+      "void main() {",
+      "  vec2 uv = gl_FragCoord.xy / u_res;",
+      "  vec2 p = uv * vec2(u_res.x / u_res.y, 1.0) * 1.4;",
+      "  float t = u_time;",
+      // domain warping: noise displacing noise, drifting slowly, never periodic
+      "  vec2 q = vec2(fbm(p + vec2(0.0, t * 0.045)), fbm(p + vec2(5.2, 1.3) - t * 0.035));",
+      "  vec2 r = vec2(fbm(p + 2.2 * q + vec2(1.7, 9.2) + t * 0.025), fbm(p + 2.2 * q + vec2(8.3, 2.8) - t * 0.03));",
+      "  float n = fbm(p + 2.4 * r);",
+      // near black through mid grey, with a soft highlight on the brightest bands
+      "  float band = smoothstep(0.35, 0.85, n);",
+      "  float l = mix(0.035, 0.15, band) + 0.09 * pow(smoothstep(0.55, 0.95, n), 2.0);",
+      "  l *= mix(0.7, 1.0, uv.y);",
+      // fine grain so the greyscale steps never band
+      "  l += (hash(gl_FragCoord.xy + fract(t * 7.13) * 91.7) - 0.5) * 0.018;",
+      "  gl_FragColor = vec4(vec3(l), 1.0);",
+      "}"
+    ].join("\n");
+    var compile = function (type, src) {
+      var sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      return gl.getShaderParameter(sh, gl.COMPILE_STATUS) ? sh : null;
+    };
+    var vs = compile(gl.VERTEX_SHADER, vert), fs = compile(gl.FRAGMENT_SHADER, frag);
+    if (!vs || !fs) return;
+    var prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+    gl.useProgram(prog);
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    var uRes = gl.getUniformLocation(prog, "u_res"), uTime = gl.getUniformLocation(prog, "u_time");
+
+    heroSection.insertBefore(canvas, heroSection.firstChild);
+    var small = window.matchMedia("(max-width: 767px)");
+    var offset = Math.random() * 200; // a different starting point each visit
+    var started = null, last = 0, raf = 0, onScreenNow = true, alive = true;
+    var size = function () {
+      var scale = small.matches ? 0.34 : 0.5;
+      var w = Math.max(1, Math.round(heroSection.clientWidth * scale));
+      var h = Math.max(1, Math.round(heroSection.clientHeight * scale));
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      gl.viewport(0, 0, w, h);
+      gl.uniform2f(uRes, w, h);
+    };
+    var draw = function (seconds) {
+      gl.uniform1f(uTime, offset + seconds);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    };
+    var frame = function (now) {
+      raf = 0;
+      if (!alive) return;
+      if (started === null) started = now;
+      if (now - last >= 1000 / 30 - 1) { last = now; draw((now - started) / 1000); }
+      schedule();
+    };
+    var schedule = function () {
+      if (!raf && alive && onScreenNow && !document.hidden && !reduceMotion.matches) raf = window.requestAnimationFrame(frame);
+    };
+    size();
+    draw(0);
+    canvas.classList.add("is-on");
+    if (!reduceMotion.matches) schedule();
+    window.addEventListener("resize", function () {
+      if (!alive) return;
+      size();
+      if (reduceMotion.matches) draw(0);
+    });
+    document.addEventListener("visibilitychange", schedule);
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        onScreenNow = entries[0].isIntersecting;
+        schedule();
+      }).observe(heroSection);
+    }
+    canvas.addEventListener("webglcontextlost", function (event) {
+      event.preventDefault();
+      alive = false;
+      if (raf) window.cancelAnimationFrame(raf);
+      canvas.remove();
+    });
+  })();
+
   // Process animation: CSS keyframes on overlay spans (transform and opacity
   // only). The script only adds the spans and pauses the cycle off screen.
   document.querySelectorAll(".sequence").forEach(function (seq) {
@@ -364,11 +563,9 @@
     return;
   }
   items.forEach(function (el) {
-    el.addEventListener("transitionend", function (event) {
-      if (event.target === el && event.propertyName === "opacity") {
-        el.classList.add("is-done");
-        el.removeAttribute("data-reveal-step");
-      }
+    if (el.classList.contains("hl-host")) { el.classList.add("is-done"); return; }
+    el.addEventListener("animationend", function (event) {
+      if (event.target === el && event.animationName === "reveal-in") el.classList.add("is-done");
     });
   });
   var reveal = function (group) {
