@@ -3,25 +3,6 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-  // Hero height: CSS sizes it to one screen with dvh. Read that exact value
-  // and lock it, re-measuring only when the width changes (rotation) or the
-  // window is resized with a mouse, never when a mobile toolbar collapses.
-  var heroes = document.querySelectorAll(".hero");
-  var finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
-  var lockedWidth = 0;
-  var lockHero = function () {
-    if (!heroes.length) return;
-    var html = document.documentElement;
-    html.classList.remove("hero-locked");
-    html.style.setProperty("--hero-h", window.getComputedStyle(heroes[0]).minHeight);
-    html.classList.add("hero-locked");
-    lockedWidth = window.innerWidth;
-  };
-  lockHero();
-  window.addEventListener("resize", function () {
-    if (window.innerWidth !== lockedWidth || finePointer.matches) lockHero();
-  });
-
   // Scroll position: with restoration set to manual (see <head>), a reload
   // opens at the top. Back and forward still return to where you were: the
   // position is saved when you leave and put back only for a back_forward
@@ -415,11 +396,11 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { markHeads(); placeLetters(); });
   }
 
-  // Hero shader: a slow greyscale gradient drawn with WebGL behind the hero.
+  // Hero shader: greyscale smoke drawn with WebGL behind the hero.
   // Capped at 30fps, drawn at device resolution (capped at 2x, 1.5x on
-  // phones), paused off screen and in background tabs. Reduced motion: one still
-  // frame. No WebGL, or a lost context: no canvas, and the CSS background
-  // stays as it is.
+  // phones), stepped down in resolution if frames are measured slow, paused
+  // off screen and in background tabs. No WebGL, or a lost context: no
+  // canvas, and the CSS background stays as it is.
   var heroSection = document.querySelector(".hero");
   if (heroSection) (function () {
     var canvas = document.createElement("canvas");
@@ -518,12 +499,19 @@
     var speed = 0.24;                 // fast enough to see the smoke move within seconds
     var started = null, last = 0, raf = 0, onScreenNow = true, alive = true;
     // Backing store = the canvas's own CSS size times the pixel ratio (capped
-    // at 2x on desktop, 1.5x under 768px); the CSS size stays 100% of the hero.
-    // quality steps down (never up) if the device cannot hold the frame rate
-    // at full resolution; see frame() below.
-    var quality = 1;
+    // at 2x on desktop, 1.5x under 768px), times the current render stage; the
+    // CSS size stays 100% of the hero. Stages only step down, and only when
+    // measured frames are slow (see frame() below). A renderer that reports
+    // itself as software starts at the lowest stage instead of failing.
+    var STAGES = [1, 0.75, 0.5, 0.35];
+    var stage = 0;
+    try {
+      var info = gl.getExtension("WEBGL_debug_renderer_info");
+      var renderer = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || "");
+      if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(renderer)) stage = STAGES.length - 1;
+    } catch (e) {}
     var size = function () {
-      var ratio = Math.min(window.devicePixelRatio || 1, small.matches ? 1.5 : 2) * quality;
+      var ratio = Math.min(window.devicePixelRatio || 1, small.matches ? 1.5 : 2) * STAGES[stage];
       var w = Math.max(1, Math.round(canvas.clientWidth * ratio));
       var h = Math.max(1, Math.round(canvas.clientHeight * ratio));
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
@@ -534,37 +522,46 @@
       gl.uniform1f(uTime, offset + seconds * speed);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
-    // Frame-rate governor: each second, compare the draws actually made with
-    // the 30fps target. Under 24 means this device cannot render that many
-    // pixels in time, so drop the resolution one step (x0.75), never below
-    // half the capped pixel ratio, and never step back up (no oscillation).
-    var windowStart = 0, drawsInWindow = 0;
+    // Frame-rate check: over two seconds of drawing, compare the draws made
+    // with the 30fps target. Below 24 means frames are genuinely slow, so step
+    // the render scale down one stage and measure again. Holding the rate
+    // settles it (no more checks). If even the lowest stage cannot hold it,
+    // keep the last frame as a still image.
+    var windowStart = 0, drawsInWindow = 0, settled = false, still = false;
     var frame = function (now) {
       raf = 0;
-      if (!alive) return;
+      if (!alive || still) return;
       if (started === null) started = now;
       if (now - last >= 1000 / 30 - 1) {
         last = now;
         draw((now - started) / 1000);
-        drawsInWindow++;
-        if (!windowStart) windowStart = now;
-        if (now - windowStart >= 1000) {
-          var fps = drawsInWindow * 1000 / (now - windowStart);
-          if (fps < 24 && quality > 0.5) { quality = Math.max(0.5, quality * 0.75); size(); }
-          windowStart = now;
-          drawsInWindow = 0;
+        if (!settled) {
+          drawsInWindow++;
+          if (!windowStart) windowStart = now;
+          if (now - windowStart >= 2000) {
+            var fps = drawsInWindow * 1000 / (now - windowStart);
+            if (fps >= 24) settled = true;
+            else if (stage < STAGES.length - 1) { stage++; size(); }
+            else { still = true; return; }
+            windowStart = 0;
+            drawsInWindow = 0;
+          }
         }
       }
       schedule();
     };
+    // The shader runs whatever the reduced-motion setting: it is a slow
+    // greyscale wash with nothing sudden in it, and that setting is often on
+    // by default on capable Windows machines. It still pauses off screen and
+    // in background tabs.
     var schedule = function () {
-      if (!raf && alive && onScreenNow && !document.hidden && !reduceMotion.matches) raf = window.requestAnimationFrame(frame);
+      if (!raf && alive && !still && onScreenNow && !document.hidden) raf = window.requestAnimationFrame(frame);
     };
     size();
     draw(0);
     canvas.classList.add("is-on");
     heroSection.classList.add("has-shader");
-    if (!reduceMotion.matches) schedule();
+    schedule();
     var resized = function () {
       if (!alive) return;
       size();

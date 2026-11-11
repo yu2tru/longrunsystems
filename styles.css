@@ -481,11 +481,13 @@ h1, h2 { filter: var(--headline-shadow); }
 .section--light + .section { border-top-color: transparent; }
 /* Every hero, together with the sticky header above it, fills exactly one
    screen, so the next section starts at the bottom edge and none of it shows
-   before scrolling. dvh (vh as a fallback) gives the visible height; then
-   script.js measures it once and locks it (.hero-locked) so a collapsing iOS
-   toolbar never resizes the hero mid-scroll. min-height, not height, so
-   content can never be clipped on a very short screen. Safe-area insets are
-   zero unless the page runs edge to edge, and are covered either way. */
+   before scrolling. Sized with svh only: the height of the screen with the
+   mobile toolbars showing, a fixed number that does not change as they
+   collapse or depending on their state at load, so the hero is the same on
+   every visit. dvh, then vh, are fallbacks for browsers without svh. Nothing
+   in script.js sets the hero height. min-height, not height, so content can
+   never be clipped on a very short screen. Safe-area insets are zero unless
+   the page runs edge to edge, and are covered either way. */
 .hero {
   position: relative;
   display: flex;
@@ -493,9 +495,9 @@ h1, h2 { filter: var(--headline-shadow); }
   justify-content: center;
   min-height: calc(100vh - var(--header-h) - env(safe-area-inset-top, 0px));
   min-height: calc(100dvh - var(--header-h) - env(safe-area-inset-top, 0px));
+  min-height: calc(100svh - var(--header-h) - env(safe-area-inset-top, 0px));
   padding: 32px 0 calc(32px + env(safe-area-inset-bottom, 0px));
 }
-.hero-locked .hero { min-height: var(--hero-h); }
 .hero h1 { max-width: 11em; }
 
 /* ---------- Home hero: spacious, monochrome, high contrast ----------
@@ -1227,6 +1229,24 @@ html:not(.js) .accordion-panel { grid-template-rows: 1fr; }
   font-size: 0.9375rem;
 }
 .contact-aside p + p { margin-top: 6px; }
+
+/* Contact page: the section is the page's hero (shader, one-screen sizing).
+   On a laptop the headline, the contact lines and the whole form, submit
+   included, fit in one screen (1366x768), so spacing is tighter than the
+   form on other pages. Phones stack and scroll as usual. */
+.hero.hero--contact { padding: 40px 0 calc(48px + env(safe-area-inset-bottom, 0px)); }
+.hero--contact .contact-grid { align-items: center; }
+@media (min-width: 960px) {
+  .hero.hero--contact { padding: 28px 0 calc(28px + env(safe-area-inset-bottom, 0px)); }
+  .hero--contact h1 { font-size: clamp(2.5rem, 5vw, 4rem); }
+  .hero--contact .lede { margin-top: 16px; }
+  .hero--contact .contact-aside { margin-top: 20px; }
+  .hero--contact .form { gap: 14px 16px; padding: 24px 28px; }
+  .hero--contact .field label { margin-bottom: 6px; }
+  .hero--contact .field input,
+  .hero--contact .field textarea { padding: 8px 12px; }
+  .hero--contact .field textarea { min-height: 96px; }
+}
 
 .form {
   display: grid;
