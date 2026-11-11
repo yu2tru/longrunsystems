@@ -379,13 +379,27 @@
       while (el && el !== heroHead) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; }
       return { x: x, y: y };
     };
+    // The headline's gradient (see .grad in styles.css), restated in pixels
+    // on a canvas M px larger on every side: one line runs left to right
+    // (30% bright, then to the muted tone at the far edge), two or more lines
+    // fall off from the top left (a farthest-corner ellipse, radii W and H
+    // times root 2). Inside the headline box it is the same gradient; past
+    // the edges the end colours simply carry on.
+    var M = 200;
     placeLetters = function () {
-      heroHead.style.setProperty("--hl-w", heroHead.offsetWidth + "px");
-      heroHead.style.setProperty("--hl-h", heroHead.offsetHeight + "px");
+      var W = heroHead.offsetWidth, H = heroHead.offsetHeight;
+      var css = window.getComputedStyle(heroHead);
+      var bright = css.getPropertyValue("--text").trim(), muted = css.getPropertyValue("--text-tone").trim();
+      var grad = heroHead.classList.contains("grad--multi")
+        ? "radial-gradient(ellipse " + (W * Math.SQRT2) + "px " + (H * Math.SQRT2) + "px at " + M + "px " + M + "px, " + bright + " 30%, " + muted + " 100%)"
+        : "linear-gradient(to right, " + bright + " " + M + "px, " + bright + " " + (M + W * 0.3) + "px, " + muted + " " + (M + W) + "px)";
+      heroHead.style.setProperty("--hl-grad", grad);
+      heroHead.style.setProperty("--hl-w", (W + 2 * M) + "px");
+      heroHead.style.setProperty("--hl-h", (H + 2 * M) + "px");
       letters.forEach(function (ch) {
         var at = offsetIn(ch.firstChild);
-        ch.firstChild.style.setProperty("--x", -at.x + "px");
-        ch.firstChild.style.setProperty("--y", -at.y + "px");
+        ch.firstChild.style.setProperty("--x", -(at.x + M) + "px");
+        ch.firstChild.style.setProperty("--y", -(at.y + M) + "px");
       });
     };
     placeLetters();
@@ -400,8 +414,8 @@
   }
 
   // Hero shader: a slow greyscale gradient drawn with WebGL behind the hero.
-  // Capped at 30fps, drawn at half resolution (a third on phones) and scaled
-  // up, paused off screen and in background tabs. Reduced motion: one still
+  // Capped at 30fps, drawn at device resolution (capped at 2x, 1.5x on
+  // phones), paused off screen and in background tabs. Reduced motion: one still
   // frame. No WebGL, or a lost context: no canvas, and the CSS background
   // stays as it is.
   var heroSection = document.querySelector(".hero");
@@ -429,9 +443,20 @@
       "  vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);",
       "  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);",
       "}",
+      // 4x4 ordered (Bayer) dither, fixed in screen space: breaks up banding
+      // at under one 8-bit step, and never changes from frame to frame.
+      "float bayer2(vec2 a) { a = floor(a); return fract(a.x / 2.0 + a.y * a.y * 0.75); }",
+      "float bayer4(vec2 a) { return bayer2(0.5 * a) * 0.25 + bayer2(a); }",
       "float fbm(vec2 p) {",
       "  float v = 0.0; float a = 0.5;",
       "  for (int i = 0; i < 4; i++) { v += a * noise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; }",
+      "  return v;",
+      "}",
+      // three octaves for the two warp layers: they only bend the field, so
+      // the fourth octave is invisible there and costs a quarter of the work
+      "float fbm3(vec2 p) {",
+      "  float v = 0.0; float a = 0.5;",
+      "  for (int i = 0; i < 3; i++) { v += a * noise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; }",
       "  return v;",
       "}",
       "void main() {",
@@ -439,15 +464,14 @@
       "  vec2 p = uv * vec2(u_res.x / u_res.y, 1.0) * 1.4;",
       "  float t = u_time;",
       // domain warping: noise displacing noise, drifting slowly, never periodic
-      "  vec2 q = vec2(fbm(p + vec2(0.0, t * 0.045)), fbm(p + vec2(5.2, 1.3) - t * 0.035));",
-      "  vec2 r = vec2(fbm(p + 2.2 * q + vec2(1.7, 9.2) + t * 0.025), fbm(p + 2.2 * q + vec2(8.3, 2.8) - t * 0.03));",
+      "  vec2 q = vec2(fbm3(p + vec2(0.0, t * 0.045)), fbm3(p + vec2(5.2, 1.3) - t * 0.035));",
+      "  vec2 r = vec2(fbm3(p + 2.2 * q + vec2(1.7, 9.2) + t * 0.025), fbm3(p + 2.2 * q + vec2(8.3, 2.8) - t * 0.03));",
       "  float n = fbm(p + 2.4 * r);",
       // near black through mid grey, with a soft highlight on the brightest bands
       "  float band = smoothstep(0.35, 0.85, n);",
       "  float l = mix(0.035, 0.15, band) + 0.09 * pow(smoothstep(0.55, 0.95, n), 2.0);",
       "  l *= mix(0.7, 1.0, uv.y);",
-      // fine grain so the greyscale steps never band
-      "  l += (hash(gl_FragCoord.xy + fract(t * 7.13) * 91.7) - 0.5) * 0.018;",
+      "  l += (bayer4(gl_FragCoord.xy) - 0.5) / 255.0;",
       "  gl_FragColor = vec4(vec3(l), 1.0);",
       "}"
     ].join("\n");
@@ -477,10 +501,15 @@
     var small = window.matchMedia("(max-width: 767px)");
     var offset = Math.random() * 200; // a different starting point each visit
     var started = null, last = 0, raf = 0, onScreenNow = true, alive = true;
+    // Backing store = the canvas's own CSS size times the pixel ratio (capped
+    // at 2x on desktop, 1.5x under 768px); the CSS size stays 100% of the hero.
+    // quality steps down (never up) if the device cannot hold the frame rate
+    // at full resolution; see frame() below.
+    var quality = 1;
     var size = function () {
-      var scale = small.matches ? 0.34 : 0.5;
-      var w = Math.max(1, Math.round(heroSection.clientWidth * scale));
-      var h = Math.max(1, Math.round(heroSection.clientHeight * scale));
+      var ratio = Math.min(window.devicePixelRatio || 1, small.matches ? 1.5 : 2) * quality;
+      var w = Math.max(1, Math.round(canvas.clientWidth * ratio));
+      var h = Math.max(1, Math.round(canvas.clientHeight * ratio));
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
       gl.viewport(0, 0, w, h);
       gl.uniform2f(uRes, w, h);
@@ -489,11 +518,27 @@
       gl.uniform1f(uTime, offset + seconds);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
+    // Frame-rate governor: each second, compare the draws actually made with
+    // the 30fps target. Under 24 means this device cannot render that many
+    // pixels in time, so drop the resolution one step (x0.75), never below
+    // half the capped pixel ratio, and never step back up (no oscillation).
+    var windowStart = 0, drawsInWindow = 0;
     var frame = function (now) {
       raf = 0;
       if (!alive) return;
       if (started === null) started = now;
-      if (now - last >= 1000 / 30 - 1) { last = now; draw((now - started) / 1000); }
+      if (now - last >= 1000 / 30 - 1) {
+        last = now;
+        draw((now - started) / 1000);
+        drawsInWindow++;
+        if (!windowStart) windowStart = now;
+        if (now - windowStart >= 1000) {
+          var fps = drawsInWindow * 1000 / (now - windowStart);
+          if (fps < 24 && quality > 0.5) { quality = Math.max(0.5, quality * 0.75); size(); }
+          windowStart = now;
+          drawsInWindow = 0;
+        }
+      }
       schedule();
     };
     var schedule = function () {
@@ -503,16 +548,21 @@
     draw(0);
     canvas.classList.add("is-on");
     if (!reduceMotion.matches) schedule();
-    window.addEventListener("resize", function () {
+    var resized = function () {
       if (!alive) return;
       size();
-      if (reduceMotion.matches) draw(0);
-    });
-    document.addEventListener("visibilitychange", schedule);
+      draw(started === null ? 0 : (performance.now() - started) / 1000);
+    };
+    window.addEventListener("resize", resized);
+    window.addEventListener("orientationchange", resized);
+    // Coming back from a pause starts a fresh measuring window, so time spent
+    // off screen or in a background tab never counts as slow rendering.
+    var resume = function () { windowStart = 0; drawsInWindow = 0; schedule(); };
+    document.addEventListener("visibilitychange", resume);
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (entries) {
         onScreenNow = entries[0].isIntersecting;
-        schedule();
+        resume();
       }).observe(heroSection);
     }
     canvas.addEventListener("webglcontextlost", function (event) {
