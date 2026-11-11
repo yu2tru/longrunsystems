@@ -134,21 +134,32 @@
     header.after(backdrop, drawer);
     drawer.inert = true;
 
+    // While open, no drag or wheel anywhere moves the page; the drawer still
+    // scrolls if its links ever overflow it (overscroll-behavior keeps that
+    // from chaining to the page). Listening only while open keeps normal
+    // scrolling passive and fast.
+    var holdScroll = function (event) {
+      if (drawer.contains(event.target) && drawer.scrollHeight > drawer.clientHeight + 1) return;
+      event.preventDefault();
+    };
     var setOpen = function (open) {
+      var method = open ? "addEventListener" : "removeEventListener";
+      document[method]("touchmove", holdScroll, { passive: false });
+      document[method]("wheel", holdScroll, { passive: false });
       toggle.setAttribute("aria-expanded", String(open));
       toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
       drawer.classList.toggle("is-open", open);
       backdrop.classList.toggle("is-open", open);
       document.documentElement.classList.toggle("menu-open", open);
       drawer.inert = !open;
-      if (!open && drawer.contains(document.activeElement)) toggle.focus();
+      // Opening moves nothing: no focus change, no scrolling, no change to
+      // overflow or position anywhere (see .menu-open in styles.css).
+      if (!open && drawer.contains(document.activeElement)) toggle.focus({ preventScroll: true });
     };
     toggle.addEventListener("click", function () {
       setOpen(toggle.getAttribute("aria-expanded") !== "true");
     });
     backdrop.addEventListener("click", function () { setOpen(false); });
-    // iOS can still scroll the page by dragging on the backdrop; stop that.
-    backdrop.addEventListener("touchmove", function (event) { event.preventDefault(); }, { passive: false });
     drawer.addEventListener("click", function (event) {
       if (event.target.closest("a")) setOpen(false);
     });
