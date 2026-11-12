@@ -511,6 +511,14 @@ h1, h2 { filter: var(--headline-shadow); }
   padding: 32px 0 calc(32px + env(safe-area-inset-bottom, 0px));
 }
 .hero h1 { max-width: 11em; }
+/* One plain sentence under the hero headline: small, normal weight */
+.hero-sub {
+  margin-top: 18px;
+  color: var(--text-faint);
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
 
 /* ---------- Home hero: spacious, monochrome, high contrast ----------
    Close to full viewport height (never taller than it), headline set a little
@@ -573,6 +581,7 @@ h1, h2 { filter: var(--headline-shadow); }
   .hero--home { padding: 20px 0 calc(64px + env(safe-area-inset-bottom, 0px)); }
   .hero h1,
   .hero--home h1 { font-size: clamp(2rem, 9vh, 3.25rem); }
+  .hero-sub { margin-top: 8px; font-size: 0.875rem; }
   .hero .lede,
   .hero--home .lede { margin-top: 12px; font-size: 1rem; }
   .hero .actions,
