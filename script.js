@@ -578,8 +578,14 @@
       size();
       draw(started === null ? 0 : (performance.now() - started) / 1000);
     };
+    // Re-measure whenever the canvas's own box changes size, not only on a
+    // window resize. On iOS the hero can settle to its final height after the
+    // first measure, and no resize event follows until the page scrolls, which
+    // left the smoke stretched (squeezed into thin streaks) until then.
+    if ("ResizeObserver" in window) new ResizeObserver(resized).observe(canvas);
     window.addEventListener("resize", resized);
     window.addEventListener("orientationchange", resized);
+    window.addEventListener("load", resized);
     // Coming back from a pause starts a fresh measuring window, so time spent
     // off screen or in a background tab never counts as slow rendering.
     var resume = function () { windowStart = 0; drawsInWindow = 0; schedule(); };
