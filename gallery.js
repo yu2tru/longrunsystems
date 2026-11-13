@@ -127,6 +127,13 @@
       return round4(tileHeight * (narrow + (1 - narrow) * t));
     };
     var bend = (Math.min(85, Math.max(5, curve)) * Math.PI) / 180;
+    // Through the camera, a tile at the frame's edge looks this many times
+    // its size in the middle (it is that much closer). Tiles are capped so
+    // even there they fit inside the gallery across the travel, with the
+    // room on the narrower side of the axis, so no curved end is ever cut
+    // off by the gallery's edge.
+    var edge = CAMERA / (CAMERA - 1 + Math.cos(bend));
+    var fits = round4((2 * Math.min(axis, 100 - axis) * 0.98) / edge);
     var id = "cg" + (++count);
     var orbit = id + "-orbit";
 
@@ -301,7 +308,7 @@
 
     new ResizeObserver(function (entries) {
       var box = entries[0].contentRect;
-      var tile = tileFor();
+      var tile = Math.min(tileFor(), fits);
       var next = up
         ? measure(box.height, box.width, tile, ratio, gap, bend)
         : measure(box.width, box.height, tile, aspect, gap, bend);
