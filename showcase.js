@@ -401,6 +401,9 @@
         var p = path(nodes[k], nodes[k + 1], vertical);
         rails[k].setAttribute("d", p.d);
         var total = rails[k].getTotalLength();
+        // Drawn only between the two boxes' edges, so nothing shows through
+        // a translucent (glass) box.
+        rails[k].style.strokeDasharray = "0 " + p.out.toFixed(1) + " " + (total - p.out - p.into).toFixed(1) + " " + total.toFixed(1);
         lines.push({ d: p.d, total: total, from: p.out, to: total - p.into });
       }
       return { vertical: vertical, length: STREAK, lines: lines };
@@ -539,14 +542,21 @@
 
   /* ---------- Fit (service page heroes) ----------
      A visual marked data-fit is scaled down, never up, to fit the box it sits
-     in, so it never makes that box (or the hero) any taller. */
+     in, so it never makes that box (or the hero) any taller. It is also moved
+     so its centre sits on the box's centre: a visual taller than the box is
+     laid out from the box's top, and scaling it about its own centre alone
+     would leave it low and spilling out of the bottom. */
   document.querySelectorAll("[data-fit]").forEach(function (fit) {
     var box = fit.parentElement;
     var size = function () {
       var w = fit.offsetWidth, h = fit.offsetHeight;
       if (!w || !h || !box.clientWidth) return;
       var s = Math.min(1, box.clientWidth / w, box.clientHeight / h);
-      fit.style.transform = s < 1 ? "scale(" + s.toFixed(4) + ")" : "";
+      // offsetLeft/Top ignore transforms, so this is the layout position.
+      var dx = box.clientWidth / 2 - (fit.offsetLeft + w / 2);
+      var dy = box.clientHeight / 2 - (fit.offsetTop + h / 2);
+      var move = Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5 ? "translate(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px) " : "";
+      fit.style.transform = move + (s < 1 ? "scale(" + s.toFixed(4) + ")" : "");
     };
     if (!("ResizeObserver" in window)) { size(); return; }
     var ro = new ResizeObserver(size);

@@ -58,6 +58,14 @@
 }
 .cg-end--l { left: 0; }
 .cg-end--r { right: 0; }
+/* Vertical gallery (data-direction="up"): the covers sit over the top and
+   bottom fades, and each tile's rounded corners are on its first and last
+   (top and bottom) strips. */
+.cg-end--t,
+.cg-end--b { left: 0; right: 0; bottom: auto; }
+.cg-end--b { top: auto; bottom: 0; }
+.cg--vertical .cg-slice:first-child { border-radius: var(--radius-sm, 8px) var(--radius-sm, 8px) 0 0; }
+.cg--vertical .cg-slice:last-child { border-radius: 0 0 var(--radius-sm, 8px) var(--radius-sm, 8px); }
 
 /* Plain links to the same sites, for keyboard and screen reader users.
    Hidden until one of them has focus, then shown under the gallery. */

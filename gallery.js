@@ -20,7 +20,15 @@
                        1400px up, a straight line between, by viewport
                        width); pair it with a shorter --cg-height there so
                        the tiles keep their size and the edges come in [1]
-     data-links-label  name of the plain link list under the gallery ["Example sites"] */
+     data-links-label  name of the plain link list under the gallery ["Example sites"]
+     data-direction    "up" for a vertical column: tiles rise from the bottom
+                       and loop, round a cylinder lying on its side (each tile
+                       bends along its height, flat in the middle, curving
+                       away toward the top and bottom), faded at the top and
+                       bottom. The same slices and math with the axes
+                       swapped; tile-height is then the tile's width, as a %
+                       of the gallery's width, and axis its horizontal centre.
+                       Default: sideways, right to left. */
 
 (function () {
   /* ---------- TILES: edit this list ----------
@@ -70,8 +78,11 @@
   }
   function round4(n) { return +n.toFixed(4); }
 
-  // Lays the loop on the cylinder. Angles in degrees: `unit` is the arc one
-  // tile-height spans, `limit` how far round a tile's centre can go before the
+  // Lays the loop on the cylinder, in terms of the direction of travel
+  // (`width`, along which the row moves and bends) and the one across it
+  // (`height`); `aspect` is a tile's length along the travel over its size
+  // across it. A vertical gallery passes its height, width and 1/aspect.
+  // Angles in degrees: `unit` is the arc one tile-height spans, `limit` how far round a tile's centre can go before the
   // whole tile is off-screen, `sweep` how far round the loop's ends sit.
   function measure(width, height, tile, aspect, gap, bend) {
     var h = Math.min((tile / 100) * height, ((MAX_WIDTH / 100) * width) / aspect);
@@ -106,6 +117,10 @@
     var curve = num(el, "curve", 80);
     var fade = num(el, "fade", 12);
     var narrow = num(el, "narrow", 1);
+    var up = el.getAttribute("data-direction") === "up";
+    if (up) el.classList.add("cg--vertical");
+    // A tile's length along the travel, over its size across it.
+    var ratio = up ? 1 / aspect : aspect;
     // Tile height (% of the gallery's height) for the current viewport width.
     var tileFor = function () {
       var t = Math.min(1, Math.max(0, (window.innerWidth - 390) / (1400 - 390)));
@@ -119,15 +134,16 @@
     var band = document.createElement("div");
     band.className = "cg-band";
     band.setAttribute("aria-hidden", "true");
-    var mask = "linear-gradient(90deg,transparent,#000 " + fade + "%,#000 " + (100 - fade) + "%,transparent)";
+    var mask = "linear-gradient(" + (up ? 180 : 90) + "deg,transparent,#000 " + fade + "%,#000 " + (100 - fade) + "%,transparent)";
     band.style.webkitMaskImage = mask;
     band.style.maskImage = mask;
-    band.style.perspectiveOrigin = "50% " + axis + "%";
-    // The faded ends are not clickable: an empty cover the width of the fade.
+    band.style.perspectiveOrigin = up ? axis + "% 50%" : "50% " + axis + "%";
+    // The faded ends are not clickable: an empty cover the size of the fade.
     var endL = document.createElement("div"), endR = document.createElement("div");
-    endL.className = "cg-end cg-end--l";
-    endR.className = "cg-end cg-end--r";
-    endL.style.width = endR.style.width = fade + "%";
+    endL.className = up ? "cg-end cg-end--t" : "cg-end cg-end--l";
+    endR.className = up ? "cg-end cg-end--b" : "cg-end cg-end--r";
+    if (up) endL.style.height = endR.style.height = fade + "%";
+    else endL.style.width = endR.style.width = fade + "%";
     el.appendChild(style);
     el.appendChild(band);
     el.appendChild(endL);
@@ -182,13 +198,19 @@
 
     function render(L) {
       var columns = L.columns, sweep = L.sweep, unit = L.unit, limit = L.limit, tileHeight = L.tile;
+      // One unit is a tile's size across the travel. Sideways: its height,
+      // from the gallery's height, capped by the width. Vertical: its width.
+      var across = up ? "cqw" : "cqh", along = up ? "cqh" : "cqw";
       var u = function (n) {
-        return "calc(" + round4(n) + " * min(" + tileHeight + "cqh, " + round4(MAX_WIDTH / aspect) + "cqw))";
+        return "calc(" + round4(n) + " * min(" + tileHeight + across + ", " + round4(MAX_WIDTH / ratio) + along + "))";
       };
       var r = 100 * arc(bend);
-      var radius = (+r.toFixed(3)) + "cqw";
+      var radius = (+r.toFixed(3)) + along;
+      // Sideways the row turns round the vertical axis, right to left;
+      // vertical, round the horizontal axis, bottom to top (rotateX turns the
+      // other way, hence the minus).
       var turn = function (deg) {
-        return "translateZ(" + radius + ") rotateY(" + round4(deg) + "deg) translateZ(-" + radius + ")";
+        return "translateZ(" + radius + ") " + (up ? "rotateX(" + round4(-deg) : "rotateY(" + round4(deg)) + "deg) translateZ(-" + radius + ")";
       };
       // Beyond `limit` a tile is wholly off-screen, so it is hidden there; the
       // loop's ends, where it wraps, fall inside that stretch.
@@ -198,9 +220,9 @@
         "from{transform:" + turn(-sweep) + "}to{transform:" + turn(sweep) + "}" +
         "0%," + hide + "%," + (100 - hide) + "%,100%{visibility:hidden}" +
         (hide + 0.001) + "%," + (100 - hide - 0.001) + "%{visibility:visible}}";
-      band.style.perspective = (+(r * CAMERA).toFixed(3)) + "cqw";
+      band.style.perspective = (+(r * CAMERA).toFixed(3)) + along;
 
-      var share = aspect / SLICES;
+      var share = ratio / SLICES;
       var reach = share * OVERLAP;
       var duration = columns * speed;
       band.textContent = "";
@@ -214,10 +236,17 @@
         tile.target = "_blank";
         tile.rel = "noopener";
         tile.tabIndex = -1;
-        tile.style.left = "calc(50% - " + u(aspect / 2) + ")";
-        tile.style.top = "calc(" + axis + "% - " + u(0.5) + ")";
-        tile.style.width = u(aspect);
-        tile.style.height = u(1);
+        if (up) {
+          tile.style.top = "calc(50% - " + u(ratio / 2) + ")";
+          tile.style.left = "calc(" + axis + "% - " + u(0.5) + ")";
+          tile.style.width = u(1);
+          tile.style.height = u(ratio);
+        } else {
+          tile.style.left = "calc(50% - " + u(aspect / 2) + ")";
+          tile.style.top = "calc(" + axis + "% - " + u(0.5) + ")";
+          tile.style.width = u(aspect);
+          tile.style.height = u(1);
+        }
         // Duration and delay also as properties, so reduced motion can pin
         // them against the site-wide rule that shortens every animation.
         tile.style.setProperty("--cg-dur", duration + "s");
@@ -233,15 +262,26 @@
           var slice = document.createElement("span");
           slice.className = "cg-slice";
           // Reaches over both neighbours (not past the tile's own outer edges).
+          // (Vertical: the same with left/width read as top/height.)
           var inL = k === 0 ? 0 : reach, inR = k === SLICES - 1 ? 0 : reach;
-          slice.style.left = u((aspect - share) / 2 - inL);
-          slice.style.width = u(share + inL + inR);
-          slice.style.height = u(1);
           // Turn about the strip's own share, wherever the overlap puts its box.
-          slice.style.transformOrigin = u(inL + share / 2) + " 50%";
-          slice.style.transform = turn((aspect / 2 - (k + 0.5) * share) * unit);
-          slice.style.backgroundSize = u(aspect) + " " + u(1);
-          slice.style.backgroundPosition = u(inL - k * share) + " 0";
+          slice.style.transform = turn((ratio / 2 - (k + 0.5) * share) * unit);
+          if (up) {
+            slice.style.left = "0";
+            slice.style.top = u((ratio - share) / 2 - inL);
+            slice.style.height = u(share + inL + inR);
+            slice.style.width = u(1);
+            slice.style.transformOrigin = "50% " + u(inL + share / 2);
+            slice.style.backgroundSize = u(1) + " " + u(ratio);
+            slice.style.backgroundPosition = "0 " + u(inL - k * share);
+          } else {
+            slice.style.left = u((aspect - share) / 2 - inL);
+            slice.style.width = u(share + inL + inR);
+            slice.style.height = u(1);
+            slice.style.transformOrigin = u(inL + share / 2) + " 50%";
+            slice.style.backgroundSize = u(aspect) + " " + u(1);
+            slice.style.backgroundPosition = u(inL - k * share) + " 0";
+          }
           tile.appendChild(slice);
         }
         (function (tile, t, first) {
@@ -262,7 +302,9 @@
     new ResizeObserver(function (entries) {
       var box = entries[0].contentRect;
       var tile = tileFor();
-      var next = measure(box.width, box.height, tile, aspect, gap, bend);
+      var next = up
+        ? measure(box.height, box.width, tile, ratio, gap, bend)
+        : measure(box.width, box.height, tile, aspect, gap, bend);
       next.tile = tile;
       if (layout && layout.columns === next.columns && layout.sweep === next.sweep && layout.unit === next.unit && layout.tile === next.tile) return;
       layout = next;
