@@ -16,6 +16,7 @@
   var FADE = 800;      // finished state fades away
   var PAUSE = 1400;    // empty, before the next scenario starts
   document.documentElement.style.setProperty("--showcase-fade", FADE + "ms");
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   /* ---------- Receptionist: three calls, in this order ----------
      caller: right, agent: left, tool: a centered green confirmation. */
@@ -57,7 +58,7 @@
     }
   ];
 
-  /* ---------- Automation: two examples, four steps each ----------
+  /* ---------- Automation: three examples, four steps each ----------
      body: "fields" (a form), value (large text) or text (a message). */
   var FLOWS = [
     [
@@ -71,6 +72,12 @@
       { label: "Invoice sent", value: "$320", detail: "Emailed to the customer" },
       { label: "Reminder sent", text: "Your $320 invoice is due Friday.", detail: "Texted three days later" },
       { label: "Paid", value: "$320", detail: "Paid by card" }
+    ],
+    [
+      { label: "Appointment ends", value: "3:15 PM", detail: "Cut and style done" },
+      { label: "Rebook text sent", text: "See you in 6 weeks. Tap to pick a time.", detail: "Texted on the way out" },
+      { label: "Reply", text: "Saturday at 10 works.", detail: "She picks a time" },
+      { label: "Rebooked", value: "Sat 10:00", detail: "Back on the calendar" }
     ]
   ];
 
@@ -160,11 +167,12 @@
   }
 
   /* ---------- Receptionist ----------
-     Built here (one copy for every page): a stage with perspective, an outer
-     .phone-swing that the swap animates, and the .iphone inside it that keeps
-     the resting tilt, so the two transforms never fight. */
+     Built here (one copy for every page): a frame at the phone's display
+     size, a .phone-scale that scales the fixed-size phone to that frame, and
+     .phone-swing, which carries the whole pose (tilt, enter, exit) in one
+     transform. */
   var PHONE =
-    '<div class="phone-swing"><div class="iphone">' +
+    '<div class="phone-frame"><div class="phone-scale"><div class="phone-swing"><div class="iphone">' +
     '<span class="iphone-key iphone-key--action"></span><span class="iphone-key iphone-key--up"></span>' +
     '<span class="iphone-key iphone-key--down"></span><span class="iphone-key iphone-key--power"></span>' +
     '<div class="iphone-screen"><span class="iphone-island"></span>' +
@@ -172,7 +180,47 @@
     '<div class="call-id"><p class="call-name"></p><p class="call-number"></p></div>' +
     '<div class="voice"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>' +
     '<div class="call-chat"><div class="call-thread"></div></div>' +
-    '</div></div></div>';
+    '</div></div></div></div></div>';
+  var PHONE_H = 560; // the phone's layout height (styles.css, .phone-scale)
+
+  /* Voice bars: one amplitude, 0 (flat) to 1 (talking), eased up over
+     VOICE_UP ms when a call starts and down over VOICE_DOWN ms when it ends.
+     Each bar swings on its own period (and offset) between flat and full, and
+     the amplitude scales that swing, so the bars grow out of the resting
+     line and settle back into it with no snap. */
+  var VOICE_UP = 400, VOICE_DOWN = 600;
+  var VOICE_PERIODS = [1.1, 0.8, 1.3, 0.7, 1.2, 0.9, 1.05]; // s, flat to full
+  var VOICE_OFFSETS = [0, 0.3, 0.6, 0.2, 0.9, 0.5, 0.1];
+  var REST = 0.2; // flat resting height, as a share of full
+
+  function voice(el, clock) {
+    var bars = el.querySelectorAll(".voice span");
+    var level = 0, target = 0, last = 0, running = false;
+    var smooth = function (x) { return x * x * (3 - 2 * x); };
+    var paint = function (now) {
+      var a = smooth(level);
+      for (var i = 0; i < bars.length; i++) {
+        var t = now / 1000 + VOICE_OFFSETS[i];
+        var swing = 0.5 - 0.5 * Math.cos((Math.PI * t) / VOICE_PERIODS[i]);
+        bars[i].style.transform = "scaleY(" + (REST + (1 - REST) * a * swing).toFixed(3) + ")";
+      }
+    };
+    var tick = function () {
+      var now = clock.now(), dt = Math.min(100, now - last);
+      last = now;
+      level = target > level ? Math.min(1, level + dt / VOICE_UP) : Math.max(0, level - dt / VOICE_DOWN);
+      paint(now);
+      if (level === 0 && target === 0) { running = false; return; }
+      clock.frame(tick);
+    };
+    return function (on) {
+      target = on ? 1 : 0;
+      if (reduce.matches || running) return; // reduced motion: the bars stay flat
+      running = true;
+      last = clock.now();
+      clock.frame(tick);
+    };
+  }
   // The swap between calls: the phone leaves to the right, and the next one
   // swings in from the left. Both fit inside FADE + PAUSE, the same time the
   // old fade between calls took, so a full loop lasts as long as before.
@@ -189,7 +237,14 @@
 
   function callScreen(el) {
     el.innerHTML = PHONE;
+    var frame = el.querySelector(".phone-frame");
     var swing = el.querySelector(".phone-swing");
+    // Scale the fixed-size phone to its frame, uniformly.
+    var fit = function () {
+      if (frame.offsetHeight) frame.style.setProperty("--phone-s", (frame.offsetHeight / PHONE_H).toFixed(4));
+    };
+    fit();
+    if ("ResizeObserver" in window) new ResizeObserver(fit).observe(frame);
     var name = el.querySelector(".call-name");
     var number = el.querySelector(".call-number");
     var chat = el.querySelector(".call-chat");
@@ -223,17 +278,20 @@
       return Math.min(3000, Math.max(1300, 700 + prev.length * 24));
     };
 
-    player(el, async function (wait) {
+    player(el, async function (wait, clock) {
+      var talk = voice(el, clock);
       for (var i = 0; ; i = (i + 1) % CALLS.length) {
         var call = CALLS[i];
         el.classList.add("is-talking");
+        talk(true);
         await wait(600);
         for (var j = 0; j < call.lines.length; j++) {
           if (j) await wait(gap(call.lines[j - 1][1], call.lines[j][0]));
           add(call.lines[j][0], call.lines[j][1]);
         }
         await wait(600); // the last message settles
-        el.classList.remove("is-talking"); // the bars rest flat from here until the next call
+        el.classList.remove("is-talking");
+        talk(false); // the bars ease down to flat and rest until the next call
         await wait(END_HOLD);
         // Exit: off to the right, turning away, back and a little smaller.
         swing.classList.add("is-exiting");
@@ -259,12 +317,20 @@
      measured length of each line, then read off on every frame. The dash and
      the beams use the same clock and the same frame, so they cannot drift
      apart. A box starts working the moment the dash's leading edge touches
-     it, finishes after WORK, and the dash leaves for the next box. */
+     it, finishes after WORK, and the dash leaves for the next box.
+     The lines are SVG paths from each box's centre to the next one's, with
+     square bends (rounded slightly) so they follow the zigzag; the boxes
+     cover the ends. The dash is a stroke dash moved along the current path,
+     so it follows every bend. Distances are measured along the path. */
   var SPEED = 183;     // dash speed in px per second (its old average speed)
   var WORK = 1200;     // how long each box works before it turns green
   var LEAVE = 150;     // after a box turns green, before the dash sets off
+  var STREAK = 36;     // the dash's length, px along the line
+  var BEND = 10;       // corner radius of the line's bends
+  var NS = "http://www.w3.org/2000/svg";
   var FLOW =
-    '<div class="flow-rail"></div><span class="flow-dot"></span>' +
+    '<svg class="flow-lines" aria-hidden="true"><path class="flow-rail"/><path class="flow-rail"/><path class="flow-rail"/>' +
+    '<g class="flow-streak"><path/><path/><path/></g></svg>' +
     [0, 1, 2, 3].map(function () {
       return '<div class="flow-node beam"><p class="flow-label"><span class="flow-mark"></span><span class="flow-name"></span></p>' +
         '<div class="flow-body"></div><p class="flow-detail"></p></div>';
@@ -273,7 +339,10 @@
   function flow(el) {
     el.innerHTML = FLOW;
     var nodes = Array.prototype.slice.call(el.querySelectorAll(".flow-node"));
-    var dot = el.querySelector(".flow-dot");
+    var rails = el.querySelectorAll(".flow-rail");
+    var streak = el.querySelector(".flow-streak");
+    var dashes = streak.querySelectorAll("path");
+    var DASHES = [STREAK, STREAK * 0.6, STREAK * 0.28]; // tail to head
 
     var fill = function (steps) {
       nodes.forEach(function (node, k) {
@@ -296,24 +365,48 @@
     var reset = function () {
       instantly(el, function () {
         nodes.forEach(function (n) { n.classList.remove("is-working", "is-done"); });
-        dot.classList.remove("is-moving");
+        streak.classList.remove("is-moving");
       });
     };
-    // The lines between boxes, in layout px (unaffected by any scaling of
-    // the whole visual): where each starts and ends along the direction of
-    // travel, and where it sits across it.
+    // The line from box a's centre to box b's, in layout px (unaffected by
+    // any scaling of the whole visual). Wide: across, down or up half way
+    // between the boxes, across again. Narrow: down, across half way between
+    // the boxes, down again. Returns the path and where it leaves a and
+    // enters b, as distances along it.
+    var path = function (a, b, vertical) {
+      var ax = a.offsetLeft + a.offsetWidth / 2, ay = a.offsetTop + a.offsetHeight / 2;
+      var bx = b.offsetLeft + b.offsetWidth / 2, by = b.offsetTop + b.offsetHeight / 2;
+      var d, out, into;
+      if (vertical) {
+        var ym = (a.offsetTop + a.offsetHeight + b.offsetTop) / 2;
+        var sx = bx > ax ? 1 : -1, rx = Math.min(BEND, Math.abs(bx - ax) / 2);
+        d = "M" + ax + " " + ay + "V" + (ym - rx) + "Q" + ax + " " + ym + " " + (ax + sx * rx) + " " + ym +
+          "H" + (bx - sx * rx) + "Q" + bx + " " + ym + " " + bx + " " + (ym + rx) + "V" + by;
+        out = a.offsetHeight / 2; into = b.offsetHeight / 2;
+      } else {
+        var xm = (a.offsetLeft + a.offsetWidth + b.offsetLeft) / 2;
+        var sy = by > ay ? 1 : -1, ry = Math.min(BEND, Math.abs(by - ay) / 2);
+        d = ry < 0.5 ? "M" + ax + " " + ay + "H" + bx :
+          "M" + ax + " " + ay + "H" + (xm - ry) + "Q" + xm + " " + ay + " " + xm + " " + (ay + sy * ry) +
+          "V" + (by - sy * ry) + "Q" + xm + " " + by + " " + (xm + ry) + " " + by + "H" + bx;
+        out = a.offsetWidth / 2; into = b.offsetWidth / 2;
+      }
+      return { d: d, out: out, into: into };
+    };
     var measure = function () {
       var vertical = nodes[1].offsetTop >= nodes[0].offsetTop + nodes[0].offsetHeight;
       el.classList.toggle("is-vertical", vertical);
       var lines = [];
       for (var k = 0; k < nodes.length - 1; k++) {
-        var a = nodes[k], b = nodes[k + 1];
-        lines.push(vertical
-          ? { from: a.offsetTop + a.offsetHeight, to: b.offsetTop, across: a.offsetLeft + a.offsetWidth / 2 }
-          : { from: a.offsetLeft + a.offsetWidth, to: b.offsetLeft, across: a.offsetTop + a.offsetHeight / 2 });
+        var p = path(nodes[k], nodes[k + 1], vertical);
+        rails[k].setAttribute("d", p.d);
+        var total = rails[k].getTotalLength();
+        lines.push({ d: p.d, total: total, from: p.out, to: total - p.into });
       }
-      return { vertical: vertical, length: vertical ? dot.offsetHeight : dot.offsetWidth, lines: lines };
+      return { vertical: vertical, length: STREAK, lines: lines };
     };
+    // Redraw the lines if the layout changes while an example plays.
+    if ("ResizeObserver" in window) new ResizeObserver(function () { measure(); }).observe(el);
     // Every event of one example, in ms from its start.
     var plan = function (g) {
       var events = [{ at: 0, node: 0, state: "is-working" }];
@@ -331,16 +424,21 @@
       });
       return { events: events, runs: runs, end: t };
     };
+    var current = null;
     var place = function (g, p, t) {
       var run = null;
       for (var k = 0; k < p.runs.length; k++) if (t >= p.runs[k].depart && t < p.runs[k].gone) run = p.runs[k];
-      dot.classList.toggle("is-moving", !!run);
+      streak.classList.toggle("is-moving", !!run);
       if (!run) return;
+      if (current !== run) {
+        current = run;
+        for (var j = 0; j < dashes.length; j++) {
+          dashes[j].setAttribute("d", run.line.d);
+          dashes[j].style.strokeDasharray = DASHES[j] + " " + (run.line.total + STREAK * 2);
+        }
+      }
       var lead = run.line.from + ((t - run.depart) / 1000) * SPEED; // the dash's leading edge
-      var along = lead - g.length;
-      dot.style.transform = g.vertical
-        ? "translate(" + run.line.across + "px," + along + "px)"
-        : "translate(" + along + "px," + run.line.across + "px)";
+      for (var i = 0; i < dashes.length; i++) dashes[i].style.strokeDashoffset = String(-(lead - DASHES[i]));
     };
 
     player(el, async function (wait, clock) {

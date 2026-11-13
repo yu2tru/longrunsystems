@@ -15,6 +15,11 @@
      data-axis         vertical centre of the row, % of the height [52]
      data-curve        how far the row bends round by the edge, degrees [80]
      data-fade         width of the fade at each end, % of the width [12]
+     data-narrow       on narrow screens, tiles grow by up to this factor of
+                       the gallery's height (full at 390px wide, none from
+                       1400px up, a straight line between, by viewport
+                       width); pair it with a shorter --cg-height there so
+                       the tiles keep their size and the edges come in [1]
      data-links-label  name of the plain link list under the gallery ["Example sites"] */
 
 (function () {
@@ -100,6 +105,12 @@
     var axis = num(el, "axis", 52);
     var curve = num(el, "curve", 80);
     var fade = num(el, "fade", 12);
+    var narrow = num(el, "narrow", 1);
+    // Tile height (% of the gallery's height) for the current viewport width.
+    var tileFor = function () {
+      var t = Math.min(1, Math.max(0, (window.innerWidth - 390) / (1400 - 390)));
+      return round4(tileHeight * (narrow + (1 - narrow) * t));
+    };
     var bend = (Math.min(85, Math.max(5, curve)) * Math.PI) / 180;
     var id = "cg" + (++count);
     var orbit = id + "-orbit";
@@ -170,7 +181,7 @@
     }
 
     function render(L) {
-      var columns = L.columns, sweep = L.sweep, unit = L.unit, limit = L.limit;
+      var columns = L.columns, sweep = L.sweep, unit = L.unit, limit = L.limit, tileHeight = L.tile;
       var u = function (n) {
         return "calc(" + round4(n) + " * min(" + tileHeight + "cqh, " + round4(MAX_WIDTH / aspect) + "cqw))";
       };
@@ -250,8 +261,10 @@
 
     new ResizeObserver(function (entries) {
       var box = entries[0].contentRect;
-      var next = measure(box.width, box.height, tileHeight, aspect, gap, bend);
-      if (layout && layout.columns === next.columns && layout.sweep === next.sweep && layout.unit === next.unit) return;
+      var tile = tileFor();
+      var next = measure(box.width, box.height, tile, aspect, gap, bend);
+      next.tile = tile;
+      if (layout && layout.columns === next.columns && layout.sweep === next.sweep && layout.unit === next.unit && layout.tile === next.tile) return;
       layout = next;
       render(next);
       el.classList.add("is-ready");
