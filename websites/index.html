@@ -32,6 +32,7 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../gallery.css">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -59,11 +60,19 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 <main id="main">
 
   <section class="hero hero--page" aria-labelledby="hero-title">
-    <div class="container center">
-      <div class="reveal"><h1 id="hero-title">Look like <span class="tone">you mean it.</span></h1></div>
-      <p class="lede reveal">Customers look you up before they call, and an outdated site makes you look smaller than you are. Built from scratch around your business, live in about a week.</p>
-      <div class="actions reveal">
-        <a class="quiet-link" href="../examples/">See sites I've built <span class="arrow" aria-hidden="true">&rarr;</span></a>
+    <!-- Hero: text left, visual right from 900px up (hidden below, so the
+         hero stays the size it was). The visual is built by the same
+         scripts as the home page and only runs while on screen. -->
+    <div class="container center hero-split">
+      <div class="hero-copy">
+        <div class="reveal"><h1 id="hero-title">Look like <span class="tone">you mean it.</span></h1></div>
+        <p class="lede reveal">Customers look you up before they call, and an outdated site makes you look smaller than you are. Built from scratch around your business, live in about a week.</p>
+        <div class="actions reveal">
+          <a class="quiet-link" href="../examples/">See sites I've built <span class="arrow" aria-hidden="true">&rarr;</span></a>
+        </div>
+      </div>
+      <div class="hero-visual reveal">
+        <div class="cg" data-curved-gallery data-tile-height="44" data-fade="10" data-links-label="Example sites"></div>
       </div>
     </div>
   </section>
@@ -331,5 +340,6 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 </footer>
 
 <script src="../script.js" defer></script>
+<script src="../gallery.js" defer></script>
 </body>
 </html>

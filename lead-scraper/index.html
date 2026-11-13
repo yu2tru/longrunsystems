@@ -59,11 +59,21 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 <main id="main">
 
   <section class="hero hero--page" aria-labelledby="hero-title">
-    <div class="container center">
-      <div class="reveal"><h1 id="hero-title">Know who <span class="tone">to call next.</span></h1></div>
-      <p class="lede reveal">Finding who to call takes longer than calling them. Lead Scraper builds the list, so you start the day with businesses to work through instead of a search to run.</p>
-      <div class="actions reveal">
-        <a class="quiet-link" href="#contact">Start finding leads <span class="arrow" aria-hidden="true">&darr;</span></a>
+    <!-- Hero: text left, visual right from 900px up (hidden below, so the
+         hero stays the size it was). The visual is built by the same
+         scripts as the home page and only runs while on screen. -->
+    <div class="container center hero-split">
+      <div class="hero-copy">
+        <div class="reveal"><h1 id="hero-title">Know who <span class="tone">to call next.</span></h1></div>
+        <p class="lede reveal">Finding who to call takes longer than calling them. Lead Scraper builds the list, so you start the day with businesses to work through instead of a search to run.</p>
+        <div class="actions reveal">
+          <a class="quiet-link" href="#contact">Start finding leads <span class="arrow" aria-hidden="true">&darr;</span></a>
+        </div>
+      </div>
+      <div class="hero-visual reveal">
+        <div class="hero-fit" data-fit>
+          <div class="leads beam" data-play data-showcase="leads" aria-hidden="true"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -362,5 +372,6 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 </footer>
 
 <script src="../script.js" defer></script>
+<script src="../showcase.js" defer></script>
 </body>
 </html>

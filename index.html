@@ -83,6 +83,7 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="gallery.css">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -119,164 +120,71 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     <span class="scroll-cue" aria-hidden="true"></span>
   </section>
 
-  <!-- 2. AI RECEPTIONIST -->
-  <section class="section section--band hscroll" id="receptionist" data-hscroll aria-labelledby="receptionist-title">
-    <div class="hscroll-pin">
-    <div class="hscroll-sticky">
+  <!-- 2. AI RECEPTIONIST
+       Each service is a mini hero: name, one short line, a button to its page,
+       and a large visual. The visuals are decorative (aria-hidden). Their
+       scenarios, examples and searches are in showcase.js, which plays them
+       only while each one is on screen. -->
+  <section class="section section--band showcase" id="receptionist" aria-labelledby="receptionist-title">
     <div class="container center">
-      <div class="reveal"><h2 id="receptionist-title">Every call. <span class="tone">Every time.</span></h2></div>
-      <p class="lede reveal">Answers day or night, even while you're on another call. Most calls never reach you.</p>
-
-      <ul class="hscroll-track reveal" role="list" tabindex="0" aria-label="What the receptionist does">
-        <li>
-          <div class="box">
-            <h3>It picks up.</h3>
-            <p>Every call, day or night, weekends included. No voicemail, and no caller left hanging.</p>
-          </div>
-        </li>
-        <li>
-          <div class="box">
-            <h3>It knows your business.</h3>
-            <p>Your services, prices, hours, and service area. It answers questions like it has been there since day one.</p>
-          </div>
-        </li>
-        <li>
-          <div class="box">
-            <h3>It books the job.</h3>
-            <p>Appointments go straight into your calendar, with overlap prevention so nothing gets double booked.</p>
-          </div>
-        </li>
-        <li>
-          <div class="box">
-            <h3>It follows up.</h3>
-            <p>After every call it texts the caller a confirmation and updates your customer list. Details come by email.</p>
-          </div>
-        </li>
-      </ul>
-      <div class="hscroll-progress" aria-hidden="true"><span></span></div>
-
-      <div class="meta-row reveal">
-        <a class="more-link" href="receptionist/">See more about the receptionist <span class="arrow" aria-hidden="true">&rarr;</span></a>
-        <a class="more-link" href="examples/">Hear it live <span class="arrow" aria-hidden="true">&rarr;</span></a>
+      <div class="reveal"><h2 id="receptionist-title">AI Receptionist</h2></div>
+      <p class="showcase-line reveal">It picks up when you can't.</p>
+      <div class="actions showcase-actions reveal">
+        <a class="btn" href="receptionist/">See the receptionist</a>
       </div>
-    </div>
-    </div>
-    </div>
-  </section>
 
-  <!-- 3. WEBSITES -->
-  <section class="section section--light section--roomy" id="websites" aria-labelledby="websites-title">
-    <div class="container center">
-      <div class="reveal"><h2 id="websites-title">Look like <span class="tone">you mean it.</span></h2></div>
-      <p class="lede reveal">Professional websites built from scratch for businesses that look smaller online than they really are. Handled fast, and tailored to your business.</p>
-
-      <ol class="sequence reveal" role="list">
-        <li class="sequence-step">
-          <h3>Reach out.</h3>
-          <p>Tell me about your business and what the site needs to do. One short call is usually enough.</p>
-        </li>
-        <li class="sequence-step">
-          <h3>I build it.</h3>
-          <p>From scratch, around your business. You see it early and tell me what to change.</p>
-        </li>
-        <li class="sequence-step">
-          <h3>It's live.</h3>
-          <p>Your site is up and working. If anything ever breaks, tell me and it gets fixed quickly, at no charge.</p>
-        </li>
-      </ol>
-
-      <div class="meta-row reveal">
-        <a class="more-link" href="websites/">See more about websites <span class="arrow" aria-hidden="true">&rarr;</span></a>
+      <div class="showcase-visual reveal">
+        <div class="phone-stage" data-play data-showcase="call" aria-hidden="true"></div>
       </div>
     </div>
   </section>
 
-  <!-- 4. CUSTOM AUTOMATION -->
-  <section class="section section--lead-in" id="automation" aria-labelledby="automation-title">
+  <!-- 3. WEBSITES
+       The curved gallery is built by gallery.js from the TILES list at the top
+       of that file. It also adds plain links to the same sites, hidden until
+       a keyboard user tabs to them. -->
+  <section class="section showcase showcase--gallery" id="websites" aria-labelledby="websites-title">
     <div class="container center">
-      <div class="reveal"><h2 id="automation-title">Again. <span class="tone">And again.</span> <span class="tone-2">And again.</span></h2></div>
-      <p class="lede reveal">If you're doing the same task forty times a week, it can probably run itself. The work still gets done, you just stop being the one doing it.</p>
+      <div class="reveal"><h2 id="websites-title">Websites</h2></div>
+      <p class="showcase-line reveal">Built from scratch, around your business.</p>
+      <p class="showcase-note reveal">Click any site to visit it.</p>
+      <div class="actions showcase-actions reveal">
+        <a class="btn" href="websites/">See websites</a>
+      </div>
+    </div>
+    <div class="showcase-visual showcase-visual--wide reveal">
+      <div class="cg" data-curved-gallery data-links-label="Example sites"></div>
+    </div>
+  </section>
 
-      <div class="qualify reveal">
-        <p>Things that usually qualify:</p>
-        <ul class="typelist" role="list">
-          <li>Quotes</li>
-          <li>Follow-ups</li>
-          <li>Scheduling</li>
-          <li>Data entry</li>
-        </ul>
+  <!-- 4. BUSINESS AUTOMATION -->
+  <section class="section section--band showcase" id="automation" aria-labelledby="automation-title">
+    <div class="container center">
+      <div class="reveal"><h2 id="automation-title">Business Automation</h2></div>
+      <p class="showcase-line reveal">The busywork, off your plate.</p>
+      <div class="actions showcase-actions reveal">
+        <a class="btn" href="automation/">See automation</a>
       </div>
 
-      <div class="actions reveal">
-        <a class="btn" href="#contact">Describe the task</a>
-        <a class="more-link" href="automation/">See more about automation <span class="arrow" aria-hidden="true">&rarr;</span></a>
+      <div class="showcase-visual reveal">
+        <div class="flow" data-play data-showcase="flow" aria-hidden="true"></div>
       </div>
     </div>
   </section>
 
-  <!-- 5. LEAD SCRAPER -->
-  <section class="section section--band hscroll" id="lead-scraper" data-hscroll aria-labelledby="lead-scraper-title">
-    <div class="hscroll-pin">
-    <div class="hscroll-sticky">
+  <!-- 5. LEAD SCRAPER
+       Sample data only: the names and 555 numbers are made up. -->
+  <section class="section showcase" id="lead-scraper" aria-labelledby="lead-scraper-title">
     <div class="container center">
-      <div class="reveal"><h2 id="lead-scraper-title">Know who <span class="tone">to call next.</span></h2></div>
-      <p class="lede reveal">Prospecting time goes to finding businesses, not talking to them. Lead Scraper builds a list of local businesses that match who you sell to, sorted and ready to work through.</p>
-
-      <ul class="hscroll-track reveal" role="list" tabindex="0" aria-label="What Lead Scraper does">
-        <li>
-          <div class="box">
-            <h3>You say who.</h3>
-            <p>Describe the kind of business and the area. That is the whole search.</p>
-          </div>
-        </li>
-        <li>
-          <div class="box">
-            <h3>It finds them.</h3>
-            <p>Matching businesses come back with name, phone, address, rating, review count, and website.</p>
-          </div>
-        </li>
-        <li>
-          <div class="box">
-            <h3>It flags the best ones.</h3>
-            <p>Businesses with no website or a low review count are marked as high-potential, so you know where to start.</p>
-          </div>
-        </li>
-        <li>
-          <div class="box">
-            <h3>You track every lead.</h3>
-            <p>Mark where each lead stands, and export the list to CSV. Use the dashboard or message the Telegram bot.</p>
-          </div>
-        </li>
-      </ul>
-      <div class="hscroll-progress" aria-hidden="true"><span></span></div>
-
-      <div class="meta-row reveal">
-        <a class="more-link" href="lead-scraper/">See more about Lead Scraper <span class="arrow" aria-hidden="true">&rarr;</span></a>
+      <div class="reveal"><h2 id="lead-scraper-title">Lead Scraper</h2></div>
+      <p class="showcase-line reveal">Your next customers, already listed.</p>
+      <div class="actions showcase-actions reveal">
+        <a class="btn" href="lead-scraper/">See Lead Scraper</a>
       </div>
-    </div>
-    </div>
-    </div>
-    <div class="container center hscroll-after">
-      <p class="credit-rule reveal">1 credit is 1 search, and a search returns up to 20 leads. A search uses one credit whether it returns three leads or twenty.</p>
-      <!-- PLANS: credit packs. Bought up front, no subscription. -->
-      <div class="plans plans--3 plans--compact">
-        <div class="reveal"><div class="box">
-          <h3 class="plan-name">10 credits</h3>
-          <p class="plan-price">$25</p>
-          <p class="plan-desc">$2.50 per search.</p>
-        </div></div>
-        <div class="reveal"><div class="box">
-          <h3 class="plan-name">25 credits</h3>
-          <p class="plan-price">$55</p>
-          <p class="plan-desc">$2.20 per search.</p>
-        </div></div>
-        <div class="reveal"><div class="box">
-          <h3 class="plan-name">60 credits</h3>
-          <p class="plan-price">$120</p>
-          <p class="plan-desc">$2.00 per search.</p>
-        </div></div>
+
+      <div class="showcase-visual reveal">
+        <div class="leads beam" data-play data-showcase="leads" aria-hidden="true"></div>
       </div>
-      <p class="plans-note reveal">Prepaid credits, no subscription.</p>
     </div>
   </section>
 
@@ -358,5 +266,7 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 </footer>
 
 <script src="script.js" defer></script>
+<script src="gallery.js" defer></script>
+<script src="showcase.js" defer></script>
 </body>
 </html>

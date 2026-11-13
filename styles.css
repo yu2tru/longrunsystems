@@ -1127,6 +1127,712 @@ h1, h2 { filter: var(--headline-shadow); }
 }
 .typelist li.is-pressed { transform: translateY(-3px); color: #ffffff; }
 
+/* ---------- Home: service showcases ----------
+   Each service is a mini hero: its name, one short line, a button, then a
+   large visual. The visuals are flat, built from the same panels, lines and
+   type as the rest of the site, with color only inside them (status dots, the
+   confirmations, the border beam). showcase.js plays them, and only while each
+   one is on screen (.is-playing); off screen their CSS animations pause too.
+   Shared timing: --showcase-fade (set by showcase.js). */
+.showcase { padding: clamp(72px, 9vw, 112px) 0; }
+.showcase-line {
+  margin: 18px auto 0;
+  max-width: 30em;
+  color: var(--text-muted);
+  font-size: clamp(1.0625rem, 2.4vw, 1.25rem);
+  line-height: 1.5;
+}
+/* A smaller second line, same muted color */
+.showcase-note {
+  margin: 8px auto 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+.showcase-actions { margin-top: 28px; }
+.showcase-visual {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(40px, 5vw, 56px);
+  container-type: inline-size; /* the automation boxes stack by this width */
+}
+.showcase-visual--wide { display: block; margin-top: clamp(8px, 2vw, 24px); }
+/* Phones: a shorter row, so tiles are smaller and about three fit across */
+@media (max-width: 599px) {
+  .showcase .cg { --cg-height: 300px; }
+}
+
+/* !important: each element's own animation shorthand would otherwise set
+   it back to running */
+[data-play]:not(.is-playing)::after,
+[data-play]:not(.is-playing) *,
+[data-play]:not(.is-playing) *::before,
+[data-play]:not(.is-playing) *::after { animation-play-state: paused !important; }
+/* showcase.js resets a visual between scenarios with transitions off */
+.is-resetting,
+.is-resetting *,
+.is-resetting::after,
+.is-resetting *::before,
+.is-resetting *::after { transition: none !important; }
+
+/* ---------- Border beam (automation boxes, the lead search box) ----------
+   A conic gradient on a 1px ring (the box masked out of it). Working: two
+   thin blue arcs with soft tails on opposite sides, circling slowly. Done:
+   the arcs lengthen round the whole border while the color turns green, in
+   about 0.6s, and stay until the example ends. Off: everything transparent.
+   The angle, arc length and colors are registered with @property so they
+   animate smoothly. */
+@property --beam-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@property --beam-len { syntax: "<angle>"; inherits: false; initial-value: 64deg; }
+@property --beam-head { syntax: "<color>"; inherits: false; initial-value: rgba(156, 180, 255, 0); }
+@property --beam-tail { syntax: "<color>"; inherits: false; initial-value: rgba(156, 180, 255, 0); }
+@property --beam-rest { syntax: "<color>"; inherits: false; initial-value: rgba(47, 163, 107, 0); }
+.beam { position: relative; }
+.beam::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(from var(--beam-angle),
+    var(--beam-tail) 0deg,
+    var(--beam-head) var(--beam-len),
+    var(--beam-rest) calc(var(--beam-len) + 0.5deg),
+    var(--beam-rest) 180deg,
+    var(--beam-tail) 180deg,
+    var(--beam-head) calc(180deg + var(--beam-len)),
+    var(--beam-rest) calc(180.5deg + var(--beam-len)));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: beam-spin 5s linear infinite;
+  transition:
+    --beam-len 0.6s var(--ease),
+    --beam-head 0.6s ease,
+    --beam-tail 0.6s ease,
+    --beam-rest 0.6s ease;
+}
+/* Going away (back to off) takes as long as the cards' own fade */
+.beam:not(.is-working):not(.is-done)::after { transition-duration: var(--showcase-fade, 0.8s); }
+.beam.is-working::after {
+  --beam-head: rgba(156, 180, 255, 0.8);
+  transition-duration: 0.15s; /* the arcs show the moment a box starts */
+}
+.beam.is-done::after {
+  --beam-len: 180deg;
+  --beam-head: #2fa36b;
+  --beam-tail: #2fa36b;
+  --beam-rest: #2fa36b;
+}
+@keyframes beam-spin { to { --beam-angle: 360deg; } }
+
+/* ---------- Receptionist: an iPhone on a call ----------
+   Built in HTML and CSS: a near-black bezel inside a thin grey frame, the
+   dynamic island and the side keys, tilted a few degrees. The tilt is static
+   and nothing in it promotes the phone to a scaled layer, so the text is
+   drawn at full resolution. */
+.phone-stage {
+  padding: 12px 18px;
+  perspective: 1400px;
+}
+/* The swap between calls animates this wrapper; the resting tilt stays on
+   .iphone inside it, so the two transforms never fight. Exit: off to the
+   right, turning away, back and smaller, fading out (ease-in). Enter: from
+   the left, turned the other way, swinging in to rest (ease-out). The
+   distance is a share of the phone's width, small enough that the phone
+   stays inside the page while it swings. */
+.phone-swing {
+  transform-style: preserve-3d;
+  transition:
+    transform 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.phone-swing.is-exiting {
+  opacity: 0;
+  transform: translate3d(42%, 0, -220px) rotateY(34deg) scale(0.9);
+  transition:
+    transform 800ms cubic-bezier(0.55, 0, 0.9, 0.4),
+    opacity 800ms cubic-bezier(0.55, 0, 0.9, 0.4);
+}
+.phone-swing.is-before {
+  opacity: 0;
+  transform: translate3d(-42%, 0, -220px) rotateY(-34deg) scale(0.92);
+}
+.iphone {
+  position: relative;
+  width: min(300px, calc(100vw - 72px));
+  height: clamp(460px, 52vh, 560px);
+  padding: 9px;
+  border-radius: 50px;
+  background: #050506;
+  transform: rotateX(4deg) rotateY(-12deg) rotateZ(2deg);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 0 2px #2a2a2f,
+    0 0 0 3px #3a3a40,
+    0 30px 56px -18px rgba(0, 0, 0, 0.65),
+    0 64px 112px -40px rgba(0, 0, 0, 0.55);
+}
+.iphone-key {
+  position: absolute;
+  width: 3px;
+  border-radius: 2px;
+  background: #3a3a40;
+}
+.iphone-key--action { left: -6px; top: 104px; height: 26px; }
+.iphone-key--up { left: -6px; top: 148px; height: 48px; }
+.iphone-key--down { left: -6px; top: 206px; height: 48px; }
+.iphone-key--power { right: -6px; top: 172px; height: 76px; }
+.iphone-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 41px;
+  background: var(--bg);
+  text-align: center;
+  overflow: hidden;
+}
+.iphone-island {
+  position: absolute;
+  z-index: 3;
+  top: 11px;
+  left: 50%;
+  width: 92px;
+  height: 26px;
+  margin-left: -46px;
+  border-radius: 13px;
+  background: #000;
+}
+.call-head {
+  flex: none;
+  padding: 46px 20px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.call-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-faint);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.call-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2fa36b;
+  box-shadow: 0 0 0 3px rgba(47, 163, 107, 0.16);
+}
+/* Between calls the name and number fade over to the next caller */
+.call-id { transition: opacity 0.35s ease; }
+.call-id.is-swapping { opacity: 0; }
+.call-name {
+  margin-top: 12px;
+  color: var(--text);
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+.call-number {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+/* Voice: flat bars that move only while a call is playing (.is-talking) and
+   rest flat in between */
+.voice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 24px;
+  margin-top: 14px;
+}
+.voice span {
+  width: 4px;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--text-muted);
+  transform: scaleY(0.2);
+}
+.is-talking .voice span { animation: voice 1.1s ease-in-out infinite alternate; }
+.voice span:nth-child(2) { animation-duration: 0.8s; animation-delay: -0.3s; }
+.voice span:nth-child(3) { animation-duration: 1.3s; animation-delay: -0.6s; }
+.voice span:nth-child(4) { animation-duration: 0.7s; animation-delay: -0.2s; }
+.voice span:nth-child(5) { animation-duration: 1.2s; animation-delay: -0.9s; }
+.voice span:nth-child(6) { animation-duration: 0.9s; animation-delay: -0.5s; }
+.voice span:nth-child(7) { animation-duration: 1.05s; animation-delay: -0.1s; }
+@keyframes voice {
+  from { transform: scaleY(0.2); }
+  to { transform: scaleY(1); }
+}
+/* The chat: the newest message stays in view; older ones slide up and fade
+   into black under the top edge */
+.call-chat {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  text-align: left;
+}
+.call-chat::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: linear-gradient(to bottom, var(--bg), rgba(12, 12, 13, 0));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.call-chat.is-scrolled::before { opacity: 1; }
+.call-thread {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 10px 18px;
+  transition: transform 0.5s var(--ease), opacity var(--showcase-fade, 0.8s) ease-in;
+}
+.call-thread.is-leaving { opacity: 0; }
+/* One message: the bubble and, just outside its squared corner, the
+   speaker's icon. Caller on the right, agent on the left. */
+.msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  animation: msg-in 0.5s var(--ease);
+}
+.msg--caller { justify-content: flex-end; }
+.msg--tool { justify-content: center; padding: 2px 0; }
+.msg-icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.bubble {
+  max-width: calc(100% - 30px);
+  padding: 9px 13px;
+  border-radius: 16px;
+  color: var(--text);
+  font-size: 0.8125rem;
+  line-height: 1.42;
+}
+.msg--caller .bubble {
+  border-bottom-right-radius: 5px;
+  background: var(--surface);
+}
+.msg--agent .bubble {
+  border-bottom-left-radius: 5px;
+  background: #2a2a2f;
+}
+.bubble--done {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  max-width: none;
+  white-space: nowrap;
+  background: rgba(47, 163, 107, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(47, 163, 107, 0.32);
+  color: #c4ecd8;
+  font-weight: 600;
+}
+.bubble-check {
+  position: relative;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+.bubble-check::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 3.5px;
+  width: 3.5px;
+  height: 7px;
+  border: solid #ffffff;
+  border-width: 0 1.75px 1.75px 0;
+  transform: rotate(45deg);
+}
+
+/* ---------- Automation: four panels on a thin line ----------
+   A short dash runs the line from one box to the next. A box shows the blue
+   beam while it works and turns green when done; its status dot turns green
+   too, and the last box also gets a check. Between examples the boxes and
+   line fade out moving down (ease-in), then the next set fades in from
+   above (ease-out). */
+.flow {
+  --gap: 48px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: var(--gap);
+  width: 100%;
+  max-width: 1080px;
+  text-align: left;
+  transition: opacity var(--showcase-fade, 0.8s) ease-out, transform var(--showcase-fade, 0.8s) ease-out;
+}
+.flow.is-leaving {
+  opacity: 0;
+  transform: translateY(14px);
+  transition-timing-function: ease-in;
+}
+.flow.is-entering { opacity: 0; transform: translateY(-14px); }
+.flow-rail {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: calc((100% - 3 * var(--gap)) / 8);
+  right: calc((100% - 3 * var(--gap)) / 8);
+  height: 1px;
+  background: var(--line-strong);
+}
+/* The dash: a thin streak lying along the line, rounded, with a soft tail.
+   showcase.js places it every frame (transform only) from the same timeline
+   as the boxes. It sits under the boxes, so it slides out of one and into
+   the next. */
+.flow-dot {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  width: 36px;
+  height: 3px;
+  margin-top: -1.5px;
+  border-radius: 1.5px;
+  background: linear-gradient(to right, rgba(156, 180, 255, 0), var(--accent) 75%);
+  opacity: 0;
+}
+.flow-dot.is-moving { opacity: 1; }
+.flow.is-vertical .flow-dot {
+  width: 3px;
+  height: 36px;
+  margin: 0 0 0 -1.5px;
+  background: linear-gradient(to bottom, rgba(156, 180, 255, 0), var(--accent) 75%);
+}
+.flow-node {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 240px;
+  padding: 20px 22px 22px;
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--panel-shadow);
+}
+.flow-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.flow-mark {
+  position: relative;
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--text-faint);
+}
+.flow-mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--ok);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s var(--ease);
+  transform: scale(0.5);
+}
+.flow-node.is-done .flow-mark::after { opacity: 1; transform: none; }
+.flow-node:last-child .flow-mark::after { inset: -3px; }
+.flow-node:last-child .flow-mark::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 3.5px;
+  top: 1px;
+  width: 4px;
+  height: 7px;
+  border: solid #ffffff;
+  border-width: 0 1.75px 1.75px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.3s ease 0.1s;
+}
+.flow-node:last-child.is-done .flow-mark::before { opacity: 1; }
+.flow-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  padding: 18px 0;
+}
+.flow-field {
+  height: 9px;
+  border-radius: 3px;
+  background: var(--line-strong);
+}
+.flow-field--short { width: 60%; }
+.flow-value {
+  color: var(--text);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.flow-text {
+  padding: 9px 12px;
+  border-radius: 12px 12px 12px 4px;
+  background: #2a2a2f;
+  color: var(--text);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+.flow-detail {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+/* In a narrow space (a phone, or a service page hero column) the steps
+   stack and the line runs down */
+@container (max-width: 759px) {
+  .flow {
+    --gap: 34px;
+    grid-template-columns: 1fr;
+    max-width: 340px;
+  }
+  .flow-rail {
+    top: calc((100% - 3 * var(--gap)) / 8);
+    bottom: calc((100% - 3 * var(--gap)) / 8);
+    left: 50%;
+    right: auto;
+    width: 1px;
+    height: auto;
+  }
+  .flow-node { min-height: 0; padding: 16px 18px 18px; }
+  .flow-body { padding: 12px 0; }
+  .flow-value { font-size: 1.625rem; }
+}
+
+/* ---------- Lead Scraper: sample searches ----------
+   Leads slide in one at a time while the blue beam circles the box; when the
+   fourth lands the beam wraps the box in green. The cards and the border go
+   together, then the next search starts. */
+.leads {
+  width: 100%;
+  max-width: 640px;
+  padding: 18px 18px 20px;
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--panel-shadow);
+  text-align: left;
+}
+.leads-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 2px 4px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.leads-search {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  transition: opacity 0.35s ease;
+}
+.leads-search.is-swapping { opacity: 0; }
+.leads-label {
+  flex: none;
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.leads-query {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.leads-count {
+  flex: none;
+  color: var(--text-faint);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+/* Room for four leads even while it is empty, so the box never jumps */
+.leads-list {
+  display: grid;
+  grid-auto-rows: 76px;
+  align-content: start;
+  gap: 10px;
+  min-height: calc(4 * 76px + 3 * 10px);
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.leads-list.is-leaving .lead {
+  opacity: 0;
+  transition: opacity var(--showcase-fade, 0.8s) ease-in;
+}
+.lead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  animation: lead-in 0.6s var(--ease);
+}
+@keyframes lead-in {
+  from { opacity: 0; transform: translateX(28px); }
+  to { opacity: 1; transform: none; }
+}
+.lead > div { min-width: 0; }
+.lead-name {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lead-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.lead-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.lead-rating svg {
+  width: 11px;
+  height: 11px;
+  fill: #d9a441;
+}
+.lead-tag {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.lead-flag {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d9a441;
+}
+@media (max-width: 479px) {
+  .leads { padding: 14px 12px 14px; }
+  .leads-head { flex-wrap: wrap; gap: 4px 12px; }
+  .leads-list { grid-auto-rows: 84px; min-height: calc(4 * 84px + 3 * 10px); }
+  .lead { padding: 0 12px; gap: 10px; }
+  .lead-meta { gap: 0 10px; }
+}
+
+/* Reduced motion: the scenarios still change, but nothing moves. No spinning
+   beam (only its color changes), no travelling dash, no voice bars, no
+   slides; every change is instant (the site-wide rule shortens transitions).
+   !important: must beat the rules above, or the site-wide 0.01ms duration
+   would loop the infinite ones at full speed. */
+@media (prefers-reduced-motion: reduce) {
+  .beam::after,
+  .is-talking .voice span,
+  .msg,
+  .lead { animation: none !important; }
+  .flow-dot { display: none; }
+  /* The phone swap becomes a simple fade, in place */
+  .phone-swing.is-exiting,
+  .phone-swing.is-before { transform: none; }
+  .phone-swing { transition: opacity 0.4s ease !important; }
+  .phone-swing.is-resetting { transition: none !important; }
+}
+
+/* ---------- Service page heroes: text left, visual right ----------
+   900px and up only. The hero keeps exactly the height it had (one screen):
+   the visual's box is sized to the room inside the hero's padding, and
+   showcase.js (data-fit) scales the visual down to fit that box, so neither
+   ever makes the hero taller. The headline is set smaller here so the same
+   words fit the narrower column in the same height. Below 900px the visual
+   is hidden and the hero is the centered column it always was. */
+.hero-visual { display: none; }
+@media (min-width: 900px) {
+  .hero-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: clamp(32px, 4vw, 64px);
+    text-align: left;
+  }
+  .hero-split h1 { font-size: clamp(2.75rem, 5.2vw, 5.25rem); }
+  .hero-split h1,
+  .hero-split .lede { margin-left: 0; margin-right: 0; }
+  .hero-split .actions { justify-content: flex-start; }
+  .hero-visual {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: calc(100vh - var(--header-h) - 104px);
+    height: calc(100svh - var(--header-h) - 104px);
+    max-height: 640px;
+    container-type: inline-size; /* the automation boxes stack by this width */
+  }
+  .hero-fit { transform-origin: center; }
+  .hero-visual .flow { width: 340px; }
+  .hero-visual .leads { width: min(560px, 100cqw); }
+  /* The gallery fills the box; its keyboard links show over its foot */
+  .hero-visual .cg { --cg-height: 100%; }
+  .hero-visual .cg-links:focus-within {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+}
+
 /* ---------- About ---------- */
 .about-grid {
   display: grid;

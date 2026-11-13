@@ -1,0 +1,97 @@
+/* Curved gallery (gallery.js). Uses the site's tokens from styles.css:
+   --media, --radius-sm, --text-muted. Set the height here or on the element
+   with --cg-height. */
+.cg {
+  position: relative;
+  width: 100%;
+  height: var(--cg-height, clamp(300px, 56vh, 560px));
+  overflow: hidden;
+  container-type: size;
+}
+/* Hidden until the script has measured it, so a first paint laid out for the
+   wrong size never shows. */
+.cg-band {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.cg.is-ready .cg-band { opacity: 1; }
+
+/* A tile is one link. The link itself takes no clicks; its strips do, so
+   only the bent shape is clickable. */
+.cg-tile {
+  position: absolute;
+  display: block;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  animation-play-state: paused;
+}
+.cg.is-playing .cg-tile { animation-play-state: running; }
+/* Each strip paints its share of the screenshot (background set by
+   gallery.js). No background color under it, so nothing dark can show at a
+   strip's edge. Dimmed by multiplying with a light grey, not by opacity:
+   strips overlap, and translucent strips would show the overlaps as bands.
+   Hover lifts the grey to white. */
+.cg-slice {
+  position: absolute;
+  top: 0;
+  background-color: #dcdcdc;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.cg-slice:first-child { border-radius: var(--radius-sm, 8px) 0 0 var(--radius-sm, 8px); }
+.cg-slice:last-child { border-radius: 0 var(--radius-sm, 8px) var(--radius-sm, 8px) 0; }
+/* Hover never pauses the motion: it only brightens the tile a little */
+.cg-tile:hover .cg-slice { background-color: #ffffff; }
+
+/* The faded ends: empty covers the width of the fade, so nothing there is clickable */
+.cg-end {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+}
+.cg-end--l { left: 0; }
+.cg-end--r { right: 0; }
+
+/* Plain links to the same sites, for keyboard and screen reader users.
+   Hidden until one of them has focus, then shown under the gallery. */
+.cg-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 28px;
+  margin: 8px 0 0;
+  padding: 0 var(--gutter, 20px);
+  list-style: none;
+}
+.cg-links:not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.cg-links .example-link { font-size: 0.875rem; color: var(--text-muted); }
+.cg-links .example-link:hover { color: var(--text); }
+
+/* Reduced motion: the row holds still as a finished frame. Every tile is
+   already placed by its negative delay, so pausing it is enough. !important
+   (with a more specific selector) beats the site-wide rule that shortens all
+   animations to almost nothing, which would place every tile wrongly. */
+@media (prefers-reduced-motion: reduce) {
+  .cg .cg-tile {
+    animation-duration: var(--cg-dur) !important;
+    animation-delay: var(--cg-delay) !important;
+    animation-play-state: paused !important;
+  }
+}

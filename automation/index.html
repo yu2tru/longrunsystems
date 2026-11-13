@@ -59,11 +59,21 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 <main id="main">
 
   <section class="hero hero--page" aria-labelledby="hero-title">
-    <div class="container center">
-      <div class="reveal"><h1 id="hero-title">Again. <span class="tone">And again.</span> <span class="tone-2">And again.</span></h1></div>
-      <p class="lede reveal">The same task forty times a week is most of a workday spent retyping what you already know. If it repeats the same way every time, it can run without you.</p>
-      <div class="actions reveal">
-        <a class="quiet-link" href="#contact">Describe the task <span class="arrow" aria-hidden="true">&darr;</span></a>
+    <!-- Hero: text left, visual right from 900px up (hidden below, so the
+         hero stays the size it was). The visual is built by the same
+         scripts as the home page and only runs while on screen. -->
+    <div class="container center hero-split">
+      <div class="hero-copy">
+        <div class="reveal"><h1 id="hero-title">Again. <span class="tone">And again.</span> <span class="tone-2">And again.</span></h1></div>
+        <p class="lede reveal">The same task forty times a week is most of a workday spent retyping what you already know. If it repeats the same way every time, it can run without you.</p>
+        <div class="actions reveal">
+          <a class="quiet-link" href="#contact">Describe the task <span class="arrow" aria-hidden="true">&darr;</span></a>
+        </div>
+      </div>
+      <div class="hero-visual reveal">
+        <div class="hero-fit" data-fit>
+          <div class="flow" data-play data-showcase="flow" aria-hidden="true"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -303,5 +313,6 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 </footer>
 
 <script src="../script.js" defer></script>
+<script src="../showcase.js" defer></script>
 </body>
 </html>
