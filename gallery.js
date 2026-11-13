@@ -127,13 +127,19 @@
       return round4(tileHeight * (narrow + (1 - narrow) * t));
     };
     var bend = (Math.min(85, Math.max(5, curve)) * Math.PI) / 180;
-    // Through the camera, a tile at the frame's edge looks this many times
-    // its size in the middle (it is that much closer). Tiles are capped so
-    // even there they fit inside the gallery across the travel, with the
-    // room on the narrower side of the axis, so no curved end is ever cut
-    // off by the gallery's edge.
-    var edge = CAMERA / (CAMERA - 1 + Math.cos(bend));
-    var fits = round4((2 * Math.min(axis, 100 - axis) * 0.98) / edge);
+    // Through the camera, a tile at the frame's edge looks CAMERA / (CAMERA
+    // - 1 + cos(bend)) times its size in the middle (it is that much
+    // closer). So no curved end is ever cut off by the gallery's edge, the
+    // bend is eased off, only as far as needed, until even an edge tile fits
+    // across the travel (in the room on the narrower side of the axis). A
+    // tile that fits at the full curve keeps the full curve.
+    var room = 2 * Math.min(axis, 100 - axis) * 0.98;
+    var bendFor = function (tile) {
+      var most = room / tile; // the largest edge magnification that fits
+      var c = CAMERA / most - (CAMERA - 1);
+      var b = c >= 1 ? 0 : Math.acos(Math.max(-1, c));
+      return Math.max((5 * Math.PI) / 180, Math.min(bend, b));
+    };
     var id = "cg" + (++count);
     var orbit = id + "-orbit";
 
@@ -211,7 +217,7 @@
       var u = function (n) {
         return "calc(" + round4(n) + " * min(" + tileHeight + across + ", " + round4(MAX_WIDTH / ratio) + along + "))";
       };
-      var r = 100 * arc(bend);
+      var r = 100 * arc(L.bend);
       var radius = (+r.toFixed(3)) + along;
       // Sideways the row turns round the vertical axis, right to left;
       // vertical, round the horizontal axis, bottom to top (rotateX turns the
@@ -308,12 +314,13 @@
 
     new ResizeObserver(function (entries) {
       var box = entries[0].contentRect;
-      var tile = Math.min(tileFor(), fits);
+      var tile = tileFor(), b = round4(bendFor(tile));
       var next = up
-        ? measure(box.height, box.width, tile, ratio, gap, bend)
-        : measure(box.width, box.height, tile, aspect, gap, bend);
+        ? measure(box.height, box.width, tile, ratio, gap, b)
+        : measure(box.width, box.height, tile, aspect, gap, b);
       next.tile = tile;
-      if (layout && layout.columns === next.columns && layout.sweep === next.sweep && layout.unit === next.unit && layout.tile === next.tile) return;
+      next.bend = b;
+      if (layout && layout.columns === next.columns && layout.sweep === next.sweep && layout.unit === next.unit && layout.tile === next.tile && layout.bend === next.bend) return;
       layout = next;
       render(next);
       el.classList.add("is-ready");
