@@ -32,10 +32,8 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../craft.css">
 </head>
-<body>
-<a class="skip-link" href="#main">Skip to content</a>
-
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 
@@ -48,6 +46,7 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
         <li class="nav-section"><a class="header-link" href="../websites/">Websites</a></li>
         <li class="nav-section"><a class="header-link" href="../automation/">Automation</a></li>
         <li class="nav-section"><a class="header-link" href="../lead-scraper/">Lead Scraper</a></li>
+        <li class="nav-section"><a class="header-link" href="../google-profile/">Google Profile</a></li>
         <li class="nav-section"><a class="header-link" href="../portfolio/">Portfolio</a></li>
         <li class="nav-section"><a class="header-link" href="../faq/">FAQ</a></li>
         <li><a class="header-link" href="../contact/">Get in touch</a></li>
@@ -79,31 +78,27 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   </section>
 
   <section class="section section--band section--snug" id="why" aria-labelledby="why-title">
-    <div class="container center">
-      <div class="section-head">
+    <div class="container split">
+      <div class="split-copy">
         <div class="reveal"><h2 id="why-title">A missed call <span class="tone">is a missed job.</span></h2></div>
+        <div class="runin reveal">
+          <p><strong>Callers don't wait.</strong> Plenty of people who reach voicemail hang up and call the next business on the list. They rarely call back.</p>
+          <p><strong>You can't always pick up.</strong> On a job or after hours, the phone rings at the worst times. It isn't your fault.</p>
+          <p><strong>A front desk is expensive.</strong> Hiring someone to answer costs thousands a month, and they still go home at five.</p>
+        </div>
       </div>
-
-      <ul class="boxes boxes--n3" role="list">
-        <li class="reveal">
-          <div class="box">
-            <h3>Callers don't wait.</h3>
-            <p>Plenty of people who reach voicemail hang up and call the next business on the list. They rarely call back.</p>
+      <div class="split-object reveal" aria-hidden="true">
+        <div class="lock-phone"><div class="iphone"><span class="iphone-key iphone-key--action"></span><span class="iphone-key iphone-key--up"></span><span class="iphone-key iphone-key--down"></span><span class="iphone-key iphone-key--power"></span><div class="iphone-screen"><span class="iphone-island"></span>
+          <p class="lock-date">Sunday, March 9</p>
+          <p class="lock-time">9:52</p>
+          <div class="lock-stack">
+            <div class="note"><b>Missed call <i>9:41 PM</i></b><span>(555) 010-0119</span></div>
+            <div class="note"><b>Voicemail <i>9:41 PM</i></b><span>0:03, no message</span></div>
+            <div class="note"><b>Missed call <i>6:17 PM</i></b><span>(555) 010-0173</span></div>
+            <div class="note"><b>Missed call <i>2:05 PM</i></b><span>(555) 010-0128</span></div>
           </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>You can't always pick up.</h3>
-            <p>On a job or after hours, the phone rings at the worst times. It isn't your fault.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>A front desk is expensive.</h3>
-            <p>Hiring someone to answer the phone costs thousands a month, and they still go home at five.</p>
-          </div>
-        </li>
-      </ul>
+        </div></div></div>
+      </div>
     </div>
   </section>
 
@@ -111,70 +106,41 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     <div class="container center">
       <div class="section-head">
         <div class="reveal"><h2 id="features-title">Like a front desk <span class="tone">that never leaves.</span></h2></div>
+        <p class="lede reveal">One call, start to finish, and what it was doing at each point.</p>
       </div>
 
-      <ul class="boxes boxes--n6" role="list">
-        <li class="reveal">
-          <div class="box">
-            <h3>It picks up.</h3>
-            <p>Every call, day or night, weekends included. No voicemail, and no caller left hanging.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>It knows your business.</h3>
-            <p>Your services, prices, hours, and service area. It answers questions like it has been there since day one.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>It books the job.</h3>
-            <p>Appointments go straight into your calendar, with overlap prevention so nothing gets double booked.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>It follows up.</h3>
-            <p>After every call it texts the caller a confirmation and updates your customer list. Details come by email.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>It sends the right calls to you.</h3>
-            <p>Urgent calls, or ones that need you personally, can be transferred straight to your phone.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>It takes the message.</h3>
-            <p>When it can't help, it texts you the caller's name, number, and what they need, right away.</p>
-          </div>
-        </li>
-      </ul>
+      <div class="annotated reveal">
+        <div class="line line--caller"><p class="say">Hi, are you open? My AC just stopped working.</p></div>
+        <p style="--r:1" class="aside"><b>It picks up.</b>Sunday night, first ring. No voicemail.</p>
+
+        <div class="line line--agent"><p class="say">We are. A diagnostic visit is $89, and it goes toward the repair.</p></div>
+        <p style="--r:2" class="aside aside--r"><b>It knows your business.</b>Your prices, hours, and service area.</p>
+
+        <div class="line line--caller"><p class="say">Okay. Can someone come tomorrow morning?</p></div>
+        <div class="line line--agent"><p class="say">I have 8 AM or 10:30. Which works better?</p></div>
+        <div class="line line--caller"><p class="say">8 is great.</p></div>
+
+        <div class="line line--tool"><p class="say">Booked, Monday 8:00 AM</p></div>
+        <p style="--r:6" class="aside"><b>It books the job.</b>Straight into your calendar, never double booked.</p>
+
+        <div class="line line--agent"><p class="say">You're all set. I just texted you a confirmation.</p></div>
+        <p style="--r:7" class="aside aside--r"><b>It follows up.</b>The caller gets a text. You get the details by email.</p>
+
+        <div class="line line--caller"><p class="say">Actually, there's water on the floor now.</p></div>
+        <div class="line line--agent"><p class="say">Let me get the owner on the line right now.</p></div>
+        <p style="--r:9" class="aside"><b>It sends the right calls to you.</b>Urgent ones ring your phone directly.</p>
+      </div>
+      <p class="annotated-foot reveal">And when it can't help, it texts you the caller's name, number, and what they need, right away.</p>
     </div>
   </section>
 
-  <section class="section section--band section--roomy" id="setup" aria-labelledby="setup-title">
-    <div class="container center">
-      <div class="section-head">
-        <div class="reveal"><h2 id="setup-title">Live <span class="tone">within a week.</span></h2></div>
-      </div>
-
-      <ol class="sequence reveal" role="list">
-        <li class="sequence-step">
-          <h3>Tell me how you work.</h3>
-          <p>Your hours, services, prices, and how you like jobs booked. One short call covers it.</p>
-        </li>
-        <li class="sequence-step">
-          <h3>I set it up.</h3>
-          <p>I build it and train it on your business, then you call it and hear exactly what your customers will hear.</p>
-        </li>
-        <li class="sequence-step">
-          <h3>Turn it on.</h3>
-          <p>Keep your number and forward calls to it, or get a new number just for it. Either way, it starts answering.</p>
-        </li>
-      </ol>
+  <section class="section section--band section--roomy has-ghost" id="setup" aria-labelledby="setup-title">
+    <div class="container week">
+      <div class="reveal"><h2 id="setup-title">Live <span class="tone">within a week.</span></h2></div>
+      <p class="week-text reveal"><b>Monday</b> we talk for fifteen minutes about your hours, services, and prices. <b>By Thursday</b> you call it yourself and hear what your customers will hear. <b>The week after</b>, it answers them.</p>
+      <p class="week-note reveal">Keep your number and forward calls to it, or get a new number just for it.</p>
     </div>
+    <span class="ghost" aria-hidden="true">24/7</span>
   </section>
 
   <section class="section section--light" id="pricing" aria-labelledby="pricing-title">

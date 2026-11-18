@@ -48,6 +48,7 @@
         "itemListElement": [
           { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AI Phone Receptionist", "url": "https://longrunsystems.com/receptionist/", "provider": { "@id": "https://longrunsystems.com/#business" } } },
           { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Custom Website Design", "url": "https://longrunsystems.com/websites/", "provider": { "@id": "https://longrunsystems.com/#business" } } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Google Business Profile Setup", "url": "https://longrunsystems.com/google-profile/", "provider": { "@id": "https://longrunsystems.com/#business" } } },
           { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Business Automation", "url": "https://longrunsystems.com/automation/", "provider": { "@id": "https://longrunsystems.com/#business" } } }
         ]
       }
@@ -84,6 +85,7 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="gallery.css">
+<link rel="stylesheet" href="craft.css">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -97,6 +99,7 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
         <li class="nav-section"><a class="header-link" href="websites/">Websites</a></li>
         <li class="nav-section"><a class="header-link" href="automation/">Automation</a></li>
         <li class="nav-section"><a class="header-link" href="lead-scraper/">Lead Scraper</a></li>
+        <li class="nav-section"><a class="header-link" href="google-profile/">Google Profile</a></li>
         <li class="nav-section"><a class="header-link" href="portfolio/">Portfolio</a></li>
         <li class="nav-section"><a class="header-link" href="faq/">FAQ</a></li>
         <li><a class="header-link" href="contact/">Get in touch</a></li>
@@ -113,10 +116,26 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
       <div class="reveal"><h1 id="hero-title">Never miss <span class="tone">another customer.</span></h1></div>
       <p class="hero-sub reveal">AI receptionists, websites, and lead tools for local businesses.</p>
       <div class="actions reveal">
-        <a class="quiet-link" href="#receptionist">See what I build <span class="arrow" aria-hidden="true">&darr;</span></a>
+        <a class="quiet-link" href="#start">See what I build <span class="arrow" aria-hidden="true">&darr;</span></a>
       </div>
     </div>
     <span class="scroll-cue" aria-hidden="true"></span>
+  </section>
+
+
+  <!-- WHERE TO START: for visitors who know the problem but not the fix -->
+  <section class="section section--snug" id="start" aria-labelledby="start-title">
+    <div class="container route">
+      <div class="reveal"><h2 id="start-title">Not sure <span class="tone">where to start?</span></h2></div>
+      <ul class="route-list reveal" role="list">
+        <li><a href="receptionist/"><span>Calls go to voicemail while you work</span><strong>The receptionist<span class="arrow" aria-hidden="true">&rarr;</span></strong></a></li>
+        <li><a href="websites/"><span>No website, or one you'd rather nobody saw</span><strong>A website<span class="arrow" aria-hidden="true">&rarr;</span></strong></a></li>
+        <li><a href="automation/"><span>The same task, typed out every week</span><strong>Automation<span class="arrow" aria-hidden="true">&rarr;</span></strong></a></li>
+        <li><a href="google-profile/"><span>People can't find you on Google Maps</span><strong>Google Profile<span class="arrow" aria-hidden="true">&rarr;</span></strong></a></li>
+        <li><a href="lead-scraper/"><span>You need more people to sell to</span><strong>Lead Scraper<span class="arrow" aria-hidden="true">&rarr;</span></strong></a></li>
+        <li><a href="#contact"><span>Something else, or all of the above</span><strong>Just ask<span class="arrow" aria-hidden="true">&darr;</span></strong></a></li>
+      </ul>
+    </div>
   </section>
 
   <!-- 2. AI RECEPTIONIST
@@ -125,13 +144,14 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
        scenarios, examples and searches are in showcase.js, which plays them
        only while each one is on screen. -->
   <section class="section section--band showcase" id="receptionist" aria-labelledby="receptionist-title">
-    <div class="container center">
-      <div class="reveal"><h2 id="receptionist-title">AI Receptionist</h2></div>
-      <p class="showcase-line reveal">It picks up when you can't.</p>
-      <div class="actions showcase-actions reveal">
-        <a class="btn" href="receptionist/">See the receptionist</a>
+    <div class="container showcase-split">
+      <div>
+        <div class="reveal"><h2 id="receptionist-title">AI Receptionist</h2></div>
+        <p class="showcase-line reveal">It picks up when you can't. It answers questions, books the job, and texts you what happened.</p>
+        <div class="actions showcase-actions reveal">
+          <a class="btn" href="receptionist/">See the receptionist</a>
+        </div>
       </div>
-
       <div class="showcase-visual reveal">
         <div class="phone-stage" data-play data-showcase="call" aria-hidden="true"></div>
       </div>
@@ -174,13 +194,14 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   <!-- 5. LEAD SCRAPER
        Sample data only: the names and 555 numbers are made up. -->
   <section class="section showcase" id="lead-scraper" aria-labelledby="lead-scraper-title">
-    <div class="container center">
-      <div class="reveal"><h2 id="lead-scraper-title">Lead Scraper</h2></div>
-      <p class="showcase-line reveal">Your next customers, already listed.</p>
-      <div class="actions showcase-actions reveal">
-        <a class="btn" href="lead-scraper/">See Lead Scraper</a>
+    <div class="container showcase-split showcase-split--flip">
+      <div>
+        <div class="reveal"><h2 id="lead-scraper-title">Lead Scraper</h2></div>
+        <p class="showcase-line reveal">Your next customers, already listed. Say who and where, and get back a list with the best ones flagged.</p>
+        <div class="actions showcase-actions reveal">
+          <a class="btn" href="lead-scraper/">See Lead Scraper</a>
+        </div>
       </div>
-
       <div class="showcase-visual reveal">
         <div class="leads beam" data-play data-showcase="leads" aria-hidden="true"></div>
       </div>
@@ -192,7 +213,8 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     <div class="container about-grid">
       <div class="reveal"><h2 id="about-title">About</h2></div>
       <div class="about-text reveal">
-        <p>I'm a high school student in the Sarasota area, and I build software for small businesses. I work directly with every client, so the person you talk to is the person doing the work. I keep the scope small and the systems simple, because simple things keep running. Most of my clients are a short drive away.</p>
+        <p>I build phone answering, websites, and automations for small businesses, and I work directly with every client. The person you talk to is the person doing the work, from the first call to a fix you need a year later.</p>
+        <p>I keep the scope small and the systems simple, because simple things keep running. I'm a high school student based in Sarasota, which keeps me quick and my prices fair, and I work with businesses anywhere.</p>
       </div>
     </div>
   </section>

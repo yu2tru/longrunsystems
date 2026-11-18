@@ -1550,7 +1550,7 @@ h1, h2 { filter: var(--headline-shadow); }
   fill: none;
   stroke: var(--accent);
   stroke-width: 3;
-  stroke-linecap: round;
+  stroke-linecap: butt; /* butt, so the dash is cut clean at a box edge */
 }
 .flow-streak path:nth-child(1) { opacity: 0.25; }
 .flow-streak path:nth-child(2) { opacity: 0.55; }

@@ -32,10 +32,8 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../craft.css">
 </head>
-<body>
-<a class="skip-link" href="#main">Skip to content</a>
-
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 
@@ -48,6 +46,7 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
         <li class="nav-section"><a class="header-link" href="../websites/">Websites</a></li>
         <li class="nav-section"><a class="header-link" href="../automation/" aria-current="page">Automation</a></li>
         <li class="nav-section"><a class="header-link" href="../lead-scraper/">Lead Scraper</a></li>
+        <li class="nav-section"><a class="header-link" href="../google-profile/">Google Profile</a></li>
         <li class="nav-section"><a class="header-link" href="../portfolio/">Portfolio</a></li>
         <li class="nav-section"><a class="header-link" href="../faq/">FAQ</a></li>
         <li><a class="header-link" href="../contact/">Get in touch</a></li>
@@ -79,91 +78,52 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   </section>
 
   <section class="section section--band section--snug" id="why" aria-labelledby="why-title">
-    <div class="container center">
-      <div class="section-head">
-        <div class="reveal"><h2 id="why-title">Your time is worth more <span class="tone">than this.</span></h2></div>
+    <div class="container split split--flip">
+      <div class="split-copy">
+        <div class="reveal"><h2 id="why-title">Your time is worth <span class="tone">more than this.</span></h2></div>
+        <div class="runin reveal">
+          <p><strong>Small tasks add up.</strong> Ten minutes, forty times a week, is most of a workday gone to typing the same thing again.</p>
+          <p><strong>Things slip through.</strong> When you're busy, follow-ups get forgotten and quotes go out late. An automation doesn't forget.</p>
+          <p><strong>It costs less than hiring.</strong> It does one job the same way every time, without adding someone to payroll.</p>
+        </div>
       </div>
-
-      <ul class="boxes boxes--n3" role="list">
-        <li class="reveal">
-          <div class="box">
-            <h3>Small tasks add up.</h3>
-            <p>Ten minutes, forty times a week, is most of a workday gone to typing the same thing again.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>Things slip through.</h3>
-            <p>When you're busy, follow-ups get forgotten and quotes go out late. An automation doesn't forget.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>It costs less than hiring.</h3>
-            <p>An automation does one job the same way every time, without adding someone to payroll.</p>
-          </div>
-        </li>
-      </ul>
+      <div class="split-object reveal" aria-hidden="true">
+        <div class="inbox">
+          <p class="inbox-head">Sent <span>this week</span></p>
+          <p class="inbox-row"><b>Re: Quote for your driveway</b><i>Fri</i><span>Hi! Thanks for reaching out. For a driveway that size the price would be...</span></p>
+          <p class="inbox-row"><b>Re: Quote for your driveway</b><i>Thu</i><span>Hi! Thanks for reaching out. For a driveway that size the price would be...</span></p>
+          <p class="inbox-row"><b>Following up on your quote</b><i>Thu</i><span>Just checking in to see if you had any questions about the quote I sent...</span></p>
+          <p class="inbox-row"><b>Re: Quote for your driveway</b><i>Wed</i><span>Hi! Thanks for reaching out. For a driveway that size the price would be...</span></p>
+          <p class="inbox-row"><b>Re: Quote for your driveway</b><i>Tue</i><span>Hi! Thanks for reaching out. For a driveway that size the price would be...</span></p>
+          <p class="inbox-row"><b>Following up on your quote</b><i>Mon</i><span>Just checking in to see if you had any questions about the quote I sent...</span></p>
+          <p class="inbox-row"><b>Re: Quote for your driveway</b><i>Mon</i><span>Hi! Thanks for reaching out. For a driveway that size the price would be...</span></p>
+        </div>
+      </div>
     </div>
   </section>
 
   <section class="section section--light" id="tasks" aria-labelledby="tasks-title">
-    <div class="container center">
-      <div class="section-head">
+    <div class="container ledger">
+      <div class="ledger-head">
         <div class="reveal"><h2 id="tasks-title">Work that <span class="tone">does itself.</span></h2></div>
+        <p class="lede reveal">These are the common ones. If you have something else in mind, ask. Most repeat work can be automated.</p>
       </div>
-
-      <ul class="boxes boxes--n4" role="list">
-        <li class="reveal">
-          <div class="box">
-            <h3>Quotes.</h3>
-            <p>A customer fills out a form and gets a priced quote back, without you typing it up.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>Follow-ups.</h3>
-            <p>Reminders after a quote and check-ins with customers who went quiet.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>Scheduling.</h3>
-            <p>Bookings and reschedules, without the back and forth.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>Data entry.</h3>
-            <p>Information moves between your forms and spreadsheets on its own.</p>
-          </div>
-        </li>
+      <ul class="ledger-list reveal" role="list">
+        <li><h3>Quotes.</h3><p>A customer fills out a form and gets a priced quote back, without you typing it up.</p></li>
+        <li><h3>Follow-ups.</h3><p>Reminders after a quote and check-ins with customers who went quiet.</p></li>
+        <li><h3>Scheduling.</h3><p>Bookings and reschedules, without the back and forth.</p></li>
+        <li><h3>Data entry.</h3><p>Information moves between your forms and spreadsheets on its own.</p></li>
       </ul>
-      <p class="plans-note reveal">These are the common ones. If you have something else in mind, ask. Most repeat work can be automated.</p>
     </div>
   </section>
 
-  <section class="section section--band section--roomy" id="how" aria-labelledby="how-title">
-    <div class="container center">
-      <div class="section-head">
-        <div class="reveal"><h2 id="how-title">Tell me once. <span class="tone">It runs from then on.</span></h2></div>
-      </div>
-
-      <ol class="sequence reveal" role="list">
-        <li class="sequence-step">
-          <h3>Tell me the task.</h3>
-          <p>What it is and how often you do it.</p>
-        </li>
-        <li class="sequence-step">
-          <h3>I tell you straight.</h3>
-          <p>Whether it can be automated and what it costs. If it can't, I'll say so.</p>
-        </li>
-        <li class="sequence-step">
-          <h3>It runs itself.</h3>
-          <p>I build it and we test it together. If it ever breaks, I fix it.</p>
-        </li>
-      </ol>
+  <section class="section section--band section--roomy has-ghost" id="how" aria-labelledby="how-title">
+    <div class="container week">
+      <div class="reveal"><h2 id="how-title">Tell me once. <span class="tone">It runs from then on.</span></h2></div>
+      <p class="week-text reveal">Tell me <b>the task</b> and how often you do it. I tell you <b>straight</b> whether it can be automated and what it costs. Then <b>it runs</b>, and if it ever breaks, I fix it.</p>
+      <p class="week-note reveal">If something can't be automated, I'll say so before you spend anything.</p>
     </div>
+    <span class="ghost" aria-hidden="true">40&times;</span>
   </section>
 
   <section class="section section--light" id="pricing" aria-labelledby="pricing-title">

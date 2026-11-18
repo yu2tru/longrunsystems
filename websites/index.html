@@ -32,11 +32,9 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../craft.css">
 <link rel="stylesheet" href="../gallery.css">
 </head>
-<body>
-<a class="skip-link" href="#main">Skip to content</a>
-
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 
@@ -49,6 +47,7 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
         <li class="nav-section"><a class="header-link" href="../websites/" aria-current="page">Websites</a></li>
         <li class="nav-section"><a class="header-link" href="../automation/">Automation</a></li>
         <li class="nav-section"><a class="header-link" href="../lead-scraper/">Lead Scraper</a></li>
+        <li class="nav-section"><a class="header-link" href="../google-profile/">Google Profile</a></li>
         <li class="nav-section"><a class="header-link" href="../portfolio/">Portfolio</a></li>
         <li class="nav-section"><a class="header-link" href="../faq/">FAQ</a></li>
         <li><a class="header-link" href="../contact/">Get in touch</a></li>
@@ -72,61 +71,46 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
         </div>
       </div>
       <div class="hero-visual reveal">
-        <div class="cg" data-curved-gallery data-direction="up" data-tile-height="61.5" data-axis="50" data-fade="12" data-links-label="Example sites"></div>
+        <div class="deck" data-deck></div>
       </div>
     </div>
   </section>
 
   <section class="section section--band section--snug" id="why" aria-labelledby="why-title">
-    <div class="container center">
-      <div class="section-head">
+    <div class="container split">
+      <div class="split-copy">
         <div class="reveal"><h2 id="why-title">People look you up <span class="tone">before they call.</span></h2></div>
+        <div class="runin reveal">
+          <p><strong>First impressions happen online.</strong> Customers search for you before they pick up the phone. What they find decides whether they call.</p>
+          <p><strong>No site looks like no business.</strong> Without a website, or with an outdated one, you look smaller than you really are.</p>
+          <p><strong>A social page isn't enough.</strong> Facebook is a start. A real site puts your services and a way to reach you in one place.</p>
+        </div>
       </div>
-
-      <ul class="boxes boxes--n3" role="list">
-        <li class="reveal">
-          <div class="box">
-            <h3>First impressions happen online.</h3>
-            <p>Customers search for you before they pick up the phone. What they find decides whether they call.</p>
+      <div class="split-object reveal" aria-hidden="true">
+        <div class="serp">
+          <div class="serp-bar"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>plumber near me</div>
+          <div class="serp-hit">
+            <p class="serp-url">gulfsideplumbing.com</p>
+            <p class="serp-title">Gulfside Plumbing | Same-Day Repairs</p>
+            <p class="serp-desc"><span class="serp-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> 4.9 (212) &middot; Leaks, water heaters, drains. Call or book online in a minute.</p>
           </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>No site looks like no business.</h3>
-            <p>Without a website, or with an outdated one, you look smaller and less established than you really are.</p>
+          <div class="serp-hit serp-hit--stale">
+            <p class="serp-url">yourbusiness-fl.net</p>
+            <p class="serp-title">Welcome to Our Website!!</p>
+            <p class="serp-desc">Serving the area since 1998. Page under construction. Call for prices. &copy; 2014</p>
           </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>A social page isn't enough.</h3>
-            <p>Facebook and Instagram are a start. A real site puts your services and a way to reach you in one place.</p>
-          </div>
-        </li>
-      </ul>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="section section--light section--roomy" id="process" aria-labelledby="process-title">
-    <div class="container center">
-      <div class="section-head">
-        <div class="reveal"><h2 id="process-title">Three steps. <span class="tone">That's it.</span></h2></div>
-      </div>
-
-      <ol class="sequence reveal" role="list">
-        <li class="sequence-step">
-          <h3>Reach out.</h3>
-          <p>Tell me about your business and what the site needs to do. One short call is usually enough.</p>
-        </li>
-        <li class="sequence-step">
-          <h3>I build it.</h3>
-          <p>From scratch, around your business. You see it early and tell me what to change.</p>
-        </li>
-        <li class="sequence-step">
-          <h3>It's live.</h3>
-          <p>Your site is up and working. If anything ever breaks, tell me and it gets fixed quickly, at no charge.</p>
-        </li>
-      </ol>
+  <section class="section section--light section--roomy has-ghost" id="process" aria-labelledby="process-title">
+    <div class="container week">
+      <div class="reveal"><h2 id="process-title">About a week, <span class="tone">start to finish.</span></h2></div>
+      <p class="week-text reveal">You tell me about the business on <b>one short call</b>. <b>A few days later</b> you see the first version and tell me what to change. <b>About a week in</b>, it's live.</p>
+      <p class="week-note reveal">If anything ever breaks, tell me and it gets fixed quickly, at no charge.</p>
     </div>
+    <span class="ghost" aria-hidden="true">7 days</span>
   </section>
 
   <section class="section section--band" id="plans" aria-labelledby="plans-title">
@@ -166,36 +150,16 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   </section>
 
   <section class="section section--light" id="included" aria-labelledby="included-title">
-    <div class="container center">
-      <div class="section-head">
+    <div class="container ledger">
+      <div class="ledger-head">
         <div class="reveal"><h2 id="included-title">What you <span class="tone">actually get.</span></h2></div>
+        <p class="lede reveal">On both plans, without paying extra.</p>
       </div>
-
-      <ul class="boxes boxes--n4" role="list">
-        <li class="reveal">
-          <div class="box">
-            <h3>Built from scratch.</h3>
-            <p>No templates. Designed around your business and the people who call you.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>Works on every screen.</h3>
-            <p>Built for phones first, then tablets and desktops.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>Loads fast.</h3>
-            <p>Light pages that open quickly, even on a weak signal.</p>
-          </div>
-        </li>
-        <li class="reveal">
-          <div class="box">
-            <h3>Easy to reach.</h3>
-            <p>Click to call and a contact form, so visitors can get in touch in one tap.</p>
-          </div>
-        </li>
+      <ul class="ledger-list reveal" role="list">
+        <li><h3>Built from scratch.</h3><p>No templates. Designed around your business and the people who call you.</p></li>
+        <li><h3>Works on every screen.</h3><p>Built for phones first, then tablets and desktops.</p></li>
+        <li><h3>Loads fast.</h3><p>Light pages that open quickly, even on a weak signal.</p></li>
+        <li><h3>Easy to reach.</h3><p>Click to call and a contact form, so visitors can get in touch in one tap.</p></li>
       </ul>
     </div>
   </section>
@@ -340,6 +304,6 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 </footer>
 
 <script src="../script.js" defer></script>
-<script src="../gallery.js" defer></script>
+<script src="../deck.js" defer></script>
 </body>
 </html>

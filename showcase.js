@@ -88,30 +88,30 @@
       query: "Home services, no website",
       tag: "No website",
       leads: [
-        ["Sample Roofing Co.", "4.6", "(555) 010-0118"],
-        ["Example Pool Care", "4.2", "(555) 010-0164"],
-        ["Demo Lawn & Garden", "4.8", "(555) 010-0127"],
-        ["Placeholder Plumbing", "3.9", "(555) 010-0193"]
+        ["Bayside Roofing Co.", "4.6", "(555) 010-0118"],
+        ["Coastal Pool Care", "4.2", "(555) 010-0164"],
+        ["Palm Lawn & Garden", "4.8", "(555) 010-0127"],
+        ["Keys Plumbing", "3.9", "(555) 010-0193"]
       ]
     },
     {
       query: "Dentists in Austin, TX",
       tag: "Low reviews",
       leads: [
-        ["Sample Smile Dental", "4.3", "(555) 010-0141", 8],
-        ["Example Family Dentistry", "4.0", "(555) 010-0152", 11],
-        ["Demo Dental Studio", "4.7", "(555) 010-0176", 6],
-        ["Placeholder Orthodontics", "4.5", "(555) 010-0108", 9]
+        ["Barton Creek Dental", "4.3", "(555) 010-0141", 8],
+        ["Lamar Family Dentistry", "4.0", "(555) 010-0152", 11],
+        ["South Congress Dental", "4.7", "(555) 010-0176", 6],
+        ["Hill Country Orthodontics", "4.5", "(555) 010-0108", 9]
       ]
     },
     {
       query: "Landscapers in Denver, CO",
       tag: "High potential",
       leads: [
-        ["Sample Yard Works", "4.4", "(555) 010-0135"],
-        ["Example Green Landscaping", "4.1", "(555) 010-0162"],
-        ["Demo Stone & Sod", "4.6", "(555) 010-0149"],
-        ["Placeholder Lawn Care", "3.8", "(555) 010-0181"]
+        ["Front Range Yard Works", "4.4", "(555) 010-0135"],
+        ["Cherry Creek Landscaping", "4.1", "(555) 010-0162"],
+        ["Mile High Stone & Sod", "4.6", "(555) 010-0149"],
+        ["Platte Lawn Care", "3.8", "(555) 010-0181"]
       ]
     }
   ];
@@ -325,6 +325,10 @@
   var SPEED = 183;     // dash speed in px per second (its old average speed)
   var WORK = 1200;     // how long each box works before it turns green
   var LEAVE = 150;     // after a box turns green, before the dash sets off
+  // The automation loop runs tighter than the other two: 2s on the finished
+  // state, and about 1.3s from gone to the next one coming in (pause + 300ms).
+  var FLOW_END_HOLD = 2000;
+  var FLOW_PAUSE = 1000;
   var STREAK = 36;     // the dash's length, px along the line
   var BEND = 10;       // corner radius of the line's bends
   var NS = "http://www.w3.org/2000/svg";
@@ -437,11 +441,20 @@
         current = run;
         for (var j = 0; j < dashes.length; j++) {
           dashes[j].setAttribute("d", run.line.d);
-          dashes[j].style.strokeDasharray = DASHES[j] + " " + (run.line.total + STREAK * 2);
+          dashes[j].style.strokeDashoffset = "0";
         }
       }
+      // Each dash covers [lead - its length, lead] along the line, cut to the
+      // stretch between the two boxes' edges. So it grows out of the first
+      // box and is cut off at its front as it runs into the next one, and
+      // nothing shows through a translucent (glass) box.
       var lead = run.line.from + ((t - run.depart) / 1000) * SPEED; // the dash's leading edge
-      for (var i = 0; i < dashes.length; i++) dashes[i].style.strokeDashoffset = String(-(lead - DASHES[i]));
+      var far = (run.line.total * 3).toFixed(1);
+      for (var i = 0; i < dashes.length; i++) {
+        var a = Math.max(lead - DASHES[i], run.line.from);
+        var b = Math.min(lead, run.line.to);
+        dashes[i].style.strokeDasharray = b > a ? "0 " + a.toFixed(1) + " " + (b - a).toFixed(1) + " " + far : "0 " + far;
+      }
     };
 
     player(el, async function (wait, clock) {
@@ -470,10 +483,10 @@
           };
           clock.frame(frame);
         });
-        await wait(END_HOLD);
+        await wait(FLOW_END_HOLD);
         el.classList.add("is-leaving"); // boxes and lines fade out, moving down
         await wait(FADE);
-        await wait(PAUSE);
+        await wait(FLOW_PAUSE);
       }
     });
   }
