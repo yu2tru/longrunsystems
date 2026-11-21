@@ -132,9 +132,9 @@ html { scroll-padding-top: 72px; }
 }
 .site-nav .nav-section { display: none; }
 
-/* ---------- Mobile menu (built by script.js, phones only) ---------- */
+/* ---------- Mobile menu (built by script.js, below 1024px, where the full nav no longer fits on one line) ---------- */
 .menu-toggle { display: none; }
-@media (max-width: 879px) {
+@media (max-width: 1023px) {
   .js .site-nav { display: none; }
   .js .menu-toggle { display: inline-flex; }
 }
@@ -239,7 +239,7 @@ html { scroll-padding-top: 72px; }
 .menu-open .site-header,
 .menu-open main,
 .menu-open .site-footer { touch-action: none; }
-@media (min-width: 880px) {
+@media (min-width: 1024px) {
   .site-nav .nav-section { display: block; }
 }
 .wordmark {

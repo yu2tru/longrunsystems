@@ -493,3 +493,132 @@
 }
 @keyframes gbp-old { 0% { opacity: 1; } 20% { opacity: 0; } 94% { opacity: 1; } }
 @keyframes gbp-new { 0% { opacity: 0; } 20% { opacity: 1; } 94% { opacity: 0; } }
+
+/* ---------- Object: a short video posting everywhere (Marketing) ----------
+   A vertical clip plays (the bar fills), then the five platforms tick off
+   one by one and clear again while the next clip plays. */
+.reel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+  width: min(440px, 100%);
+  text-align: left;
+}
+.reel-video {
+  position: relative;
+  width: clamp(132px, 34vw, 168px);
+  aspect-ratio: 9 / 16;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(165deg, #2c2c32, #141416 70%);
+  box-shadow: var(--panel-shadow), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.reel-play {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 0;
+  height: 0;
+  margin: -11px 0 0 -6px;
+  border-left: 17px solid rgba(255, 255, 255, 0.85);
+  border-top: 11px solid transparent;
+  border-bottom: 11px solid transparent;
+}
+.reel-caption {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 24px;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.reel-bar {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 13px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+.reel-bar span {
+  display: block;
+  height: 100%;
+  background: #ffffff;
+  transform: scaleX(0.6);
+  transform-origin: left;
+}
+.reel-posts { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line-strong); }
+.reel-posts li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.reel-mark {
+  position: relative;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--text-faint);
+}
+.reel-mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--ok, #2fa36b);
+}
+.reel-state { margin-left: auto; color: var(--text-muted); font-size: 0.8125rem; font-weight: 400; }
+@media (prefers-reduced-motion: no-preference) {
+  .reel-bar span { animation: reel-play 8s linear infinite; }
+  .reel-mark::after,
+  .reel-state { animation: reel-post 8s ease infinite both; }
+  .reel-posts li:nth-child(2) > * { animation-delay: 0.45s; }
+  .reel-posts li:nth-child(3) > * { animation-delay: 0.9s; }
+  .reel-posts li:nth-child(4) > * { animation-delay: 1.35s; }
+  .reel-posts li:nth-child(5) > * { animation-delay: 1.8s; }
+  .reel-posts li:nth-child(2) .reel-mark::after { animation-delay: 0.45s; }
+  .reel-posts li:nth-child(3) .reel-mark::after { animation-delay: 0.9s; }
+  .reel-posts li:nth-child(4) .reel-mark::after { animation-delay: 1.35s; }
+  .reel-posts li:nth-child(5) .reel-mark::after { animation-delay: 1.8s; }
+}
+@keyframes reel-play {
+  0% { transform: scaleX(0); }
+  45%, 100% { transform: scaleX(1); }
+}
+@keyframes reel-post {
+  0%, 46% { opacity: 0; transform: scale(0.6); }
+  52%, 90% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+
+/* ---------- Object: a social account that went quiet (Marketing) ---------- */
+.feed {
+  width: min(360px, 100%);
+  padding: 20px;
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--panel-shadow);
+  text-align: left;
+}
+.feed-head { display: flex; align-items: center; gap: 14px; }
+.feed-avatar { flex: none; width: 48px; height: 48px; border-radius: 50%; background: var(--line-strong); }
+.feed-name { color: var(--text); font-weight: 600; }
+.feed-stats { color: var(--text-muted); font-size: 0.875rem; }
+.feed-stats b { color: var(--text); font-weight: 600; }
+.feed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 18px; }
+.feed-grid span { aspect-ratio: 1; border-radius: 4px; background: rgba(255, 255, 255, 0.1); }
+.feed-grid .feed-empty { background: none; border: 1px dashed var(--line-strong); }
+.feed-note { margin-top: 16px; color: var(--text-muted); font-size: 0.875rem; }
+.feed-note span { color: #ff9b9b; }
