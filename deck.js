@@ -6,10 +6,11 @@
    With reduced motion it shows the first window and does not move. */
 (function () {
   var SITES = [
-    { src: "assets/examples/level-up-home.webp",     href: "https://tutoring.yusufjax1.workers.dev/",              url: "tutoring.yusufjax1.workers.dev",          label: "Level Up Tutoring: Home" },
-    { src: "assets/examples/level-up-subjects.webp", href: "https://tutoring.yusufjax1.workers.dev/subjects.html", url: "tutoring.yusufjax1.workers.dev/subjects", label: "Level Up Tutoring: Subjects" },
-    { src: "assets/examples/level-up-booking.webp",  href: "https://tutoring.yusufjax1.workers.dev/booking.html",  url: "tutoring.yusufjax1.workers.dev/booking",  label: "Level Up Tutoring: Booking" },
-    { src: "assets/examples/level-up-contact.webp",  href: "https://tutoring.yusufjax1.workers.dev/contact.html",  url: "tutoring.yusufjax1.workers.dev/contact",  label: "Level Up Tutoring: Contact" }
+    { src: "assets/examples/endurance-home.webp",   href: "https://endurance-rea.yusufjax1.workers.dev/",              url: "endurance-rea.yusufjax1.workers.dev",          label: "Endurance Real Estate Advisors: Home" },
+    { src: "assets/examples/level-up-home.webp",    href: "https://tutoring.yusufjax1.workers.dev/",             url: "tutoring.yusufjax1.workers.dev",               label: "Level Up Tutoring: Home" },
+    { src: "assets/examples/endurance-team.webp",   href: "https://endurance-rea.yusufjax1.workers.dev/about/#team",   url: "endurance-rea.yusufjax1.workers.dev/about",    label: "Endurance Real Estate Advisors: Team" },
+    { src: "assets/examples/level-up-booking.webp", href: "https://tutoring.yusufjax1.workers.dev/booking.html", url: "tutoring.yusufjax1.workers.dev/booking",       label: "Level Up Tutoring: Booking" },
+    { src: "assets/examples/endurance-why.webp",    href: "https://endurance-rea.yusufjax1.workers.dev/",              url: "endurance-rea.yusufjax1.workers.dev",          label: "Endurance Real Estate Advisors: Why Endurance" }
   ];
   var HOLD = 3200; // ms each window stays in front
 

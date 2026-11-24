@@ -39,10 +39,11 @@
      Tiles play through this list in order and repeat. Links that appear more
      than once are listed once under the gallery. */
   var TILES = [
+    { src: "assets/examples/endurance-home.webp",    href: "https://endurance-rea.yusufjax1.workers.dev/",                               label: "Endurance Real Estate Advisors: Home" },
     { src: "assets/examples/level-up-home.webp",     href: "https://tutoring.yusufjax1.workers.dev/",              label: "Level Up Tutoring: Home" },
-    { src: "assets/examples/level-up-subjects.webp", href: "https://tutoring.yusufjax1.workers.dev/subjects.html", label: "Level Up Tutoring: Subjects" },
+    { src: "assets/examples/endurance-team.webp",    href: "https://endurance-rea.yusufjax1.workers.dev/about/#team",                    label: "Endurance Real Estate Advisors: Team" },
     { src: "assets/examples/level-up-booking.webp",  href: "https://tutoring.yusufjax1.workers.dev/booking.html",  label: "Level Up Tutoring: Booking" },
-    { src: "assets/examples/level-up-contact.webp",  href: "https://tutoring.yusufjax1.workers.dev/contact.html",  label: "Level Up Tutoring: Contact" }
+    { src: "assets/examples/endurance-why.webp",     href: "https://endurance-rea.yusufjax1.workers.dev/",                               label: "Endurance Real Estate Advisors: Why Endurance" }
   ];
 
   var script = document.currentScript;
