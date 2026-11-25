@@ -242,12 +242,23 @@ html { scroll-padding-top: 72px; }
 @media (min-width: 1024px) {
   .site-nav .nav-section { display: block; }
 }
+/* Just above the breakpoint the full nav and the logo only fit with the
+   links set a little closer together */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .site-nav { gap: 20px; }
+}
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   color: var(--text);
   font-weight: 600;
   font-size: 0.9375rem;
   letter-spacing: -0.01em;
 }
+/* The logo mark: assets/brand/logo-light-96.png (the light version, for the
+   dark site; assets/brand/logo.png is the original colors) */
+.wordmark-logo { flex: none; width: 28px; height: 28px; }
 .wordmark:hover { color: var(--text); }
 .header-link {
   display: inline-flex;
@@ -2116,7 +2127,8 @@ html:not(.js) .accordion-panel { grid-template-rows: 1fr; }
     justify-content: space-between;
   }
 }
-.footer-name { color: var(--text); font-weight: 600; }
+.footer-name { display: inline-flex; align-items: center; gap: 8px; color: var(--text); font-weight: 600; }
+.footer-logo { flex: none; width: 22px; height: 22px; }
 .footer-links {
   display: flex;
   flex-wrap: wrap;
